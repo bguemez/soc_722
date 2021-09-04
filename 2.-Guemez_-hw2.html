@@ -395,21 +395,23 @@ dallas_summary</code></pre>
 </div>
 <div id="question-10" class="section level2">
 <h2>Question 10</h2>
-<pre class="r"><code>txhousing |&gt; filter(year==2012) |&gt; select(month, sales) |&gt; arrange(desc(sales))</code></pre>
-<pre><code>## # A tibble: 552 x 2
-##    month sales
-##    &lt;int&gt; &lt;dbl&gt;
-##  1     8  7112
-##  2     6  6990
-##  3     7  6842
-##  4     5  6743
-##  5    10  5866
-##  6     4  5629
-##  7    12  5610
-##  8     9  5479
-##  9    11  5449
-## 10     3  5389
-## # ... with 542 more rows</code></pre>
+<pre class="r"><code>txhousing |&gt; filter(year==2012) |&gt; group_by(month) |&gt; summarize (summ_sales = sum(sales) ) |&gt; 
+ arrange(desc(summ_sales))</code></pre>
+<pre><code>## # A tibble: 12 x 2
+##    month summ_sales
+##    &lt;int&gt;      &lt;dbl&gt;
+##  1     8      29995
+##  2     6      29574
+##  3     5      28348
+##  4     7      28269
+##  5    10      24259
+##  6     4      23954
+##  7     9      23256
+##  8     3      22934
+##  9    12      22457
+## 10    11      22018
+## 11     2      17689
+## 12     1      14299</code></pre>
 <p>In August</p>
 </div>
 <div id="question-11" class="section level2">
