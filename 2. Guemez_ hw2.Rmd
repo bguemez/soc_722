@@ -1,0 +1,198 @@
+---
+title: "Problem Sets: 2 & 3"
+author: "Braulio Güémez"
+date: "31/8/2021"
+output: html_document
+---
+
+# *Problem Set 02*
+
+## Open the libraries and the data
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+library(readr)
+
+nc <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTm2WZwNBoQdZhMgot7urbtu8eG7tzAq-60ZJsQ_nupykCAcW0OXebVpHksPWyR4x8xJTVQ8KAulAFS/pub?gid=202410847&single=true&output=csv")
+
+```
+
+## Exercise 1
+
+R is considering `habit`to be a character type of variable. `Visits` is considered as a number with decimals type of variable.
+
+## Exercise 2
+
+There is a positive relation between the length of a pregnancy and the birth weight of a baby in pounds. Thus, for every week increase there is a correspondent increase in the weight of the baby.
+
+## Exercise 3
+
+```{r}
+nc |> ggplot(aes(weeks, gained)) + geom_point() + labs(x="Length of pregnancy (in weeks)", y="Weight gained during pregnancy", title="Relationship between pregnancy duration and weight gained duing pregnancy")
+```
+
+## Exercise 4
+
+A. It colors the points according to the values of the variable `premie`, that indicates whether a birth was early (`premie`) or went full term.
+
+B. Three
+
+C. 36 weeks
+
+## Exercise 5
+
+```{r}
+nc |> ggplot(aes(mage,weight, col=factor(gender))) + geom_point() + geom_smooth(method="lm")
+```
+
+There seems to be no strong relationship between the mother's age and the weight of her newborn. There is a slight positive slope (blue line) in the case of male newborns but not in the case of female ones.
+
+## Exercise 6
+
+A. The number of births of a single child.
+
+B. 39
+
+C. 1 bin and all the 800 cases would be in that bin
+
+## Exercise 7
+
+```{r}
+nc |> ggplot(aes(weight)) + geom_histogram() + labs(x="Weight of the newborn (in lbs)", y="n" , title="Distribution of newborn weights")
+```
+
+## Exercise 8
+
+```{r}
+nc |> ggplot(aes(weight)) + geom_histogram(binwidth  =0.5) + facet_wrap(.~gender)   
+```
+
+Male newborns have a higher average birth weight. This can be seen is the right-skewed distribution of weight in the case of male newborns (Panel 2)
+
+## Exercise 9
+
+```{r}
+nc |>  ggplot(aes(mature, gained)) + geom_boxplot() + labs(x="Maturity status of the mothers", y="Weight", title="Weight gained during pregnancy by maturity status of the mothers")
+```
+
+The median weight gain during pregnancy is a bit larger in younger moms than older moms
+
+## Exercise 10
+
+```{r}
+nc |>  ggplot(aes(habit, weeks)) + geom_boxplot()
+```
+
+The duration of the pregnancy varies more for smokers than for non-smokers.
+
+## Exercise 11
+
+```{r}
+nc |>  ggplot(aes(fage)) + geom_histogram(binwidth = 3) 
+```
+
+The father's age distribution is skewed to the left, that is, younger ages.
+
+## Exercise 12
+
+```{r}
+nc |>  ggplot(aes(whitemom, weight)) + geom_boxplot()
+```
+
+The median birth weight of babies is higher for white than non-white mothers.
+
+## Exercise 13
+
+```{r}
+nc |>  ggplot(aes(mage, weeks)) + geom_point() + geom_smooth(method="lm")
+```
+
+There seems to be no significant association between the mother's age and the duration of pregnancy
+
+# *Problem Set 03*
+
+## Open the data (libraries already opened)
+
+```{r message=FALSE, warning=FALSE}
+data(txhousing)
+glimpse(txhousing)
+```
+
+## Question 1
+
+The last city listed in the data set (in row 8602) Wichita Falls
+
+## Question 2
+
+The `listings` variable display the total active listings
+
+## Question 3
+
+```{r}
+txhousing <- txhousing |> select(-inventory)
+
+glimpse(txhousing)
+```
+
+## Question 4
+
+```{r}
+dallas_sub <- txhousing |> filter(city=="Dallas", (year==2012 | year==2013)) 
+
+dallas_sub
+```
+
+## Question 5
+
+```{r}
+dallas_sub <- dallas_sub |> mutate(prct_sold=sales/listings*100) 
+
+dallas_sub$prct_sold
+```
+
+## Question 6
+
+```{r}
+dallas_summary <- dallas_sub |> group_by(month) |> summarize(mean_per=mean(prct_sold))
+
+dallas_summary
+
+```
+
+## Question 7
+
+```{r}
+  dallas_summary  |> arrange(desc(mean_per)) 
+
+```
+
+## Question 8
+
+The code summarizes all of the steps followed in previous questions: calculate and sort the average percentage of listings that were sold in Dallas from 2012 to 2013
+
+## Question 9
+
+```{r}
+txhousing |> filter(month==1, year==2015) |> select(city, listings) |> arrange(listings)
+
+```
+
+San Marcos was the city in January of 2015 that had the fewest houses listed.
+
+## Question 10
+
+```{r}
+txhousing |> filter(year==2012) |> group_by(month) |> summarize (summ_sales = sum(sales) ) |> 
+ arrange(desc(summ_sales))
+```
+
+In August
+
+## Question 11
+
+```{r}
+austin_sub <- txhousing |> filter((city=="Austin" | city =="Dallas"), (year==2000 | year==2001)) |> select(sales, city) |> group_by(city) |> summarize(total_sold=sum(sales))
+
+austin_sub
+```
