@@ -1,0 +1,285 @@
+---
+title: "Probability Problem Set"
+author: "Braulio Güémez"
+date: "7/9/2021"
+output: html_document
+---
+
+## 0 Libraries and deck set-up
+
+```{r message=FALSE, warning=FALSE }
+library(tidyverse)
+library(ggplot2)
+library(ggthemes)
+
+deck <- tibble(
+  # tibble is a more flexible data.frame
+  card = rep(
+    c("ace",
+      "deuce",
+      "three",
+      "four",
+      "five",
+      "six",
+      "seven",
+      "eight",
+      "nine",
+      "ten",
+      "jack",
+      "queen",
+      "king"
+    ),4),
+  suit =
+    rep(c(
+      "diamonds", 
+      "hearts", 
+      "clubs", 
+      "spades"),
+        each = 13),
+  color = rep(c("red", 
+                "black"),
+              each = 26)
+)
+
+
+```
+
+
+## Question 1
+
+Your friend wants to know the probability of getting one black card first and then one red card in two draws with replacement. Use your data wrangling tools to answer this question.
+
+_The probability of two successive balls is the product of their individual probabilities:_ 
+
+```{r}
+pr_black <- deck %>% 
+  filter(color == "black") %>% 
+  nrow()/nrow(deck)
+
+pr_red <- deck %>% 
+  filter(color == "red") %>% 
+  nrow()/nrow(deck)
+
+pr_black*pr_red
+
+```
+
+Okay, impressed with your skills, your friend asks a more specific question: what’s the probability of getting one king or one ace in a single draw.
+
+_Since P(Ace U King) = P(Ace) + P(King) - their intersection (which is 0), and P(Ace) = P(King), then P(Ace U King) = P(Ace)*2_
+
+```{r}
+pr_ace <- deck |> 
+  filter(card=="ace") %>% 
+  nrow()/nrow(deck)
+
+pr_ace*2
+
+```
+
+
+Alright, what’s the probability of getting two aces in two draws with replacement?
+
+_Two aces with replacement equals P1(Ace) * P2(Ace) , and since P(Ace) is the same in each draw, then the answer is pr_ace^2_
+
+```{r}
+
+pr_ace^2
+
+```
+
+## Question 2
+Your friend asks you to give them an example of what some hands might look like. A hand in Poker consists of 5 cards sampled without replacement. Give your friend an example of five randomly sampled hands. 
+
+_We take a random sample of 5 out of Nico's deck using sample_n_
+
+```{r}
+
+random <- sample_n(deck, 5)
+random
+
+```
+
+Excitedly, they ask what is the total number of different hands you could draw in Poker. (Feel free to answer this question and the ones below without using deck or the tidyverse.)
+
+_I used the R function for combinations, considering that order does not matter in a Poker hand. This is equivalent to 52! / [48!*4!]   _
+
+```{r}
+choose(52,5)
+(52*51*50*49*48)/(5*4*3*2*1)
+```
+
+## Question 3
+
+Aware of your skills, your friend is going to try to push you a bit. They ask about the probability that each suit is represented in a hand. This means getting a card from each suit, with one of the suits showing up twice (because there are 4 suits and 5 cards).
+
+_There are 4 types of suites that are repeated 13 times each which lead to the total of 52 cards. The probability of getting a suit in the first draw is 1. In the second draw, the probability of getting a different suit than the first one is 39/51. Third, is 26/50. Fourth is 13/49. And fifth is just any card left in the deck: 48/48 = 1. I multiply all of those probabilities to get the joint probabilities of the events_
+
+```{r}
+1*39/51*26/50*13/49*1
+```
+
+## Question 4
+Last question, they promise. What’s the probability of getting at least one Ace in one 5-card hand?
+
+_To get P(Ace)>0 you need to calculate the complement of not having aces 1-P(not ACE). A deck without aces would have 52-4=48 cards, so that's the first numerator that is divided by the total, which is 52. This sequence is repeated 4 more times subtracting 1 to both the numerator and the denominator:  _ 
+
+```{r}
+
+  1-(48/52*47/51*46/50*45/49*44/48)
+
+```
+## Question 5
+Your Poker obsessed friend keeps their promise, but rumor of your skills has spread and another friend comes asking for a favor. They work in HR and they need to create some committees in their company. There are 6 employees and they need to find a committee of 2. They are wondering how many combinations are possible.
+
+You google and find a stackoverflow answer that provides a clunky solution.
+
+
+```{r}
+df <- tibble(
+  id   = 1:6,
+  name = c('Alice', 'Bob', 'Charlie', 'Diane', 'Fred', 'Jenny')
+)
+
+df_pairs <- df %>% 
+  rename(id1 = id, name1 = name) %>% 
+  crossing(df %>% 
+             select(id2 = id, name2 = name)) %>%
+  filter(id1 < id2) %>%
+  unite(id, id1, id2) %>%
+  unite(name, name1, name2)
+
+df_pairs
+
+```
+
+But this friend is not convinced by this. Can you provide an analytic solution to this problem?
+
+_To answer the question you need to see how many combinations of two individuals are possible with a total of 6 without minding about the order. This can be computed with the choose function of R. What is behind is a combination of the multiplication rule and adjusting for overcounting. When you are forming your committee, you first have 6 persons to choose, then only 5. You multiply 6 times 5 and you have the total permutations. Because order does not matter you have to adjust the overcouunting; that is, dividing by 2 _ 
+
+```{r}
+choose(6,2)
+
+6*5/2
+
+```
+
+# Question 6
+Your friend forgot to mention that the committee actually has positions: a president and vice-president. Can you modify the code above so that it shows all combinations when order does matter? This means that Jenny_Diane is different than Diane_Jenny.
+
+_For this code, I created a new var equal to the difference between id id2. This would help me identify the repeated nameslike "Alice_Alice". I then substract those cases from the dataset_ 
+
+```{r}
+
+df <- tibble(
+  id   = 1:6,
+  name = c('Alice', 'Bob', 'Charlie', 'Diane', 'Fred', 'Jenny')
+)
+
+df_pairs <- df %>% 
+  rename(id1 = id, name1 = name) %>% 
+  crossing(df %>% 
+             select(id2 = id, name2 = name)) %>%
+  mutate(resta=id1-id2) |> 
+  filter(resta!=0) %>%
+  select(-resta) |> 
+  unite(id, id1, id2) %>%
+  unite(name, name1, name2)
+
+df_pairs
+
+
+
+```
+
+
+Now, to satisfy your stubborn friend, can you provide an analytic solution?
+
+_Use the multiplication rule. In this case there is no need to adjust for overcounting because order DOES matter. :_
+
+```{r}
+6*5
+
+```
+
+
+
+## Question 7
+To finish, let’s strengthen our simulation and plotting skills. Blitztein and Hwang talk about the capabilities of the sample() function. For this last exercise, you will draw 1000 samples from three different six-sided dice:
+
+
+1. A fair die (where all outcomes are equally likely).
+
+
+```{r}
+set.seed(33)
+
+first_dice <- replicate(1000,sample(1:6,1)) 
+average <- mean(first_dice)
+plot_first <- tibble(random=first_dice, mean=average)
+
+plot_first |> group_by(random) |>  summarize(n=n()) |> 
+   ggplot(aes(as.character(random), n, fill=as.character(random))) + geom_col()+ geom_vline(xintercept=average, linetype=2) + theme_clean() + labs(x="random dice numbers", title="Distribution of random dice numbers", caption="Discontinous line equals the mean number of all the draws (3.5) ") + theme(plot.caption =  element_text(hjust=0)) + guides(fill="none") + scale_fill_grey()
+
+
+
+
+```
+
+
+2. A loaded die that lands on six 50% of the time (you can choose the probabilities of the other values). 
+
+
+
+```{r}
+set.seed(33)
+
+wicked_dice_p <- c(.1,.2,.1,.05,.05,.5) 
+wicked_dice <- replicate(1000,sample(1:6,1, prob=wicked_dice_p)) 
+average <- mean(wicked_dice)
+
+plot_wicked <- tibble(dice_num=wicked_dice, mean=average)
+
+plot_wicked |> group_by(dice_num) |>  summarize(n=n()) |> 
+   ggplot(aes(as.character(dice_num), n, fill=as.character(dice_num))) + geom_col()+ geom_vline(xintercept=average, linetype=2) + theme_clean() + labs(x="random dice numbers", title="Distribution of random dice numbers", caption="Discontinous line equals the mean number of all the draws") + theme(plot.caption =  element_text(hjust=0)) + guides(fill="none") + scale_fill_grey()
+
+
+# We test if 6 is in the dice ~ 50% of the times:
+
+plot_wicked |> filter(dice_num==6) |> count()
+
+## Kind of,yes :-) 
+
+```
+
+
+3. A loaded die that lands on 5 with p=1/3 and on 6 with p=1/3.
+
+
+
+
+```{r}
+set.seed(33)
+
+wicked_dice_p <- c((1/3)/4,(1/3)/4,(1/3)/4,(1/3)/4,1/3,1/3) 
+wicked_dice <- replicate(1000,sample(1:6,1, prob=wicked_dice_p)) 
+average <- sum(wicked_dice)/length(wicked_dice)
+
+plot_wicked <- tibble(dice_num=wicked_dice, mean=average)
+
+plot_wicked |> group_by(dice_num) |>  summarize(n=n()) |> 
+   ggplot(aes(as.character(dice_num), n, fill=as.character(dice_num))) + geom_col()+ geom_vline(xintercept=average, linetype=2) + theme_clean() + labs(x="random dice numbers", title="Distribution of random dice numbers", caption="Discontinous line equals the mean number of all the draws") + theme(plot.caption =  element_text(hjust=0)) + guides(fill="none") + scale_fill_grey()
+
+
+# We test if 6 OR 5 is in the dice ~ 66% of the times:
+
+plot_wicked |> filter(dice_num==6 | dice_num==5) |> count()/1000
+
+## Kind of,yes :-) 
+
+```
+
+
+
+
+
