@@ -278,6 +278,7 @@ LR
 
 updated_odds <- LR*(1/99) 
 prob_posterior <- 9/(LR+99) 
+prob_posterior
 
 
 ```
@@ -308,9 +309,12 @@ prevalence_odds <- 5/95
 (19*5)+95 ## denominator
 
 posterior_probability <- 95/190
-posterior_probability
+posterior_probability*100
 
 ```
+
+_The probability is 50%_
+
 
 Fill out the XXs appropriately. Follow what Blitzstein and Hwang did for conditionitis but do it for conditionitis B. Remember the main difference is that the former affects 1% of the population while the latter affects 5%.
 
