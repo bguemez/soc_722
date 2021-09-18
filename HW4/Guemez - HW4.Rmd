@@ -1,0 +1,405 @@
+---
+title: "Probability Workshop 2"
+author: "Braulio Güémez"
+date: "13/9/2021"
+output: html_document
+---
+
+## Question 1
+
+Using probability notation, write the probability that a person speaks Spanish given that they are from South America:
+
+$$P(\text{Spanish|South American})$$
+
+What about the probability that a person is from South America given that they speak Spanish?
+
+$$P(\text{South American|Spanish})$$
+
+Which one do you think will be higher?
+
+The second one: $$P(\text{Spanish|South American})$$because there are more Spanish-speaking individuals in South America than the fraction of South Americans as a proportion of the Spanish-speaking world, which includes North and Central America, part of the Caribbean, and Spain.
+
+Now, look at the full equation for conditional probability on page 42. Using that as a guide, write out in probability notation the full conditional probability that someone speaks Spanish given that they are from South America.
+
+$$P(\text{Spanish|South American})=P(\frac{\text{Spanish} \cap \text{South American}}{\text{South American}})$$
+
+## Question 2
+
+As chapter 1 noted, it is often useful to think about probabilities as branching trees. When we do this, it becomes even clearer that conditioning is equivalent to reducing the space of possibilities to consider.
+
+Let's start with the first example: P(both girls\|at least one girl) Color in red the edges - i.e. the arrows - of the branches that have at least one girl. Now, color in green the nodes - i.e. the circles - of the branch/branches that have two girls. Now, count. Does your result match the example on the book?
+
+```{r, message=FALSE, warning=FALSE}
+
+library(DiagrammeR)
+library(tidyverse)
+
+
+```
+
+```{r}
+
+tree <-
+    create_graph() %>% # initiate graph
+    add_n_nodes(
+      n = 7, 
+      type = "path",
+      label = c("START", "B", "G", "B", "G", "B", "G"), # Labels for each node
+      node_aes = node_aes(
+        shape = "circle",
+        height = 1,
+        width = 1,
+        x = c(0, 3, 3, 6, 6, 6, 6), # Just the heights of each node (so it looks like a tree)
+        y = c(0, 2, -2, 3, 1, -3, -1), 
+        fill = c("white", "blue", "green", "blue", "blue", "blue", "green"))) %>% 
+    add_edge(
+      from = 1,
+      to = 2,
+      edge_aes = edge_aes(
+        label = "0.5",
+        color = "red"
+      )) %>% 
+  add_edge(
+      from = 1,
+      to = 3,
+      edge_aes = edge_aes(
+        label = "0.5", 
+        color = "red"
+      )) %>% 
+  add_edge(
+      from = 2,
+      to = 4,
+      edge_aes = edge_aes(
+        label = "0.5"
+      )) %>% 
+  add_edge(
+      from = 2,
+      to = 5,
+      edge_aes = edge_aes(
+        label = "0.5",
+        color = "red"
+        
+      )) %>% 
+  add_edge(
+      from = 3,
+      to = 6,
+      edge_aes = edge_aes(
+        label = "0.5",
+        color = "red"
+
+      )) %>% 
+  add_edge(
+      from = 3,
+      to = 7,
+      edge_aes = edge_aes(
+        label = "0.5",
+                color = "red"
+      )) 
+render_graph(tree)
+
+```
+
+*I first determine the condition variable, "at least one girl" because that would be our restricted universe, or the denominator. In the graph there are three paths that lead to an outcome that implies at least one girl, so that probability equals 3/4 (which also equals the sum of the individual probabilities .25+.25+.25).*
+
+*The next step is to identify the prior var intersected with our condition, which in this case is the both girls path represented by the two green circles in the diagram . Using the conditional probability equation we get (1/4/3/4), or the intersection of "at least one girl" and "both girls" divided by "at least one girl", which matches the result of the book*
+
+What is the probability that both children are girls given that the elder child is a girl?
+
+```{r}
+tree <-
+    create_graph() %>% # initiate graph
+    add_n_nodes(
+      n = 7, 
+      type = "path",
+      label = c("START", "B", "G", "B", "G", "G", "B"), # Labels for each node
+      node_aes = node_aes(
+        shape = "circle",
+        height = 1,
+        width = 1,
+        x = c(0, 3, 3, 6, 6, 6, 6), # Just the heights of each node (so it looks like a tree)
+        y = c(0, 2, -2, 3, 1, -3, -1), 
+        fill = c("white", "blue", "blue", "blue", "red", "red", "blue"))) %>% 
+    add_edge(
+      from = 1,
+      to = 2,
+      edge_aes = edge_aes(
+        label = "0.5"
+      )) %>% 
+  add_edge(
+      from = 1,
+      to = 3,
+      edge_aes = edge_aes(
+        label = "0.5",
+        color="red",
+      )) %>% 
+  add_edge(
+      from = 2,
+      to = 4,
+      edge_aes = edge_aes(
+        label = "0.5"
+      )) %>% 
+  add_edge(
+      from = 2,
+      to = 5,
+      edge_aes = edge_aes(
+        label = "0.5"
+      )) %>% 
+  add_edge(
+      from = 3,
+      to = 6,
+      edge_aes = edge_aes(
+        label = "0.5",
+        color="red"
+      )) %>% 
+  add_edge(
+      from = 3,
+      to = 7,
+      edge_aes = edge_aes(
+        label = "0.5"
+      )) 
+render_graph(tree)
+```
+
+*The probability that the elder child is a girl (the given probability) is represented by the two red circles, so 2/4=1/2. This number would be in the denominator. The probability of having two girls (the prior prob) is the red path which equals to = (.5\^2=.25) or 1/4.*
+
+*Since the event "both girls" is a subset of the larger event "elder child is a girl" , the joint probability equals the probability of "both girls". This will be the number in the numerator. Following the definition of conditional probability, the result is (1/4)/(1/2), which matches that of the book*
+
+## Question 3
+
+In page 49, Blitzstein and Hwang introduce Bayes' rule in ddds form. The definition is the following:
+
+P(A\|B)P(Ac\|B)=P(B\|A)P(B\|Ac)×P(A)P(Ac)
+
+These equation has three big parts. Provide the name of each one and explain them in your own words. This definition need not be technical: just make sure you understand what each part of this equation represents.
+
+*The first part are the posterior odds. These are the updated odds of A after conditioning on B. For example, having COVID given a positive test versus not having COVID given a positive test*
+
+*The second part is the likelihood ratio, which I understand as the answer to: how strong will it be the update of my prior? or to what extent the condition really affects my prior? In my concrete example that would be to see how much my test gives true positives, so it is the probability that the test comes back positive given the person has COVID divided by the probability of a positive test given that the person does NOT has COVID.*
+
+*The third part is called the prior odds. This is the relation between the success and failure of A in general, not conditioned by the situation B. So that would be the number of people with COVID divided by the number of people without COVID.*
+
+*Since we want the intersection of A and B, the prior and the condition, then it makes sense that the formula multiplies the component of the prior (PRIOR ODDS) and the component of the condition (Likelihood Ratio). The result is the UPDATED-by-B probability of A*
+
+## Question 4
+
+Here, I've written out some code to reproduce the example on page 51 of the book. We have two coins: one which is fair - P(Head)=1/2 - and one which is biased towards Heads - P(Head)=3/4. We want to know the probability that the coin we are flipping is the fair one given that we have observed three heads in a row.
+
+```{r}
+fair_coin <- 1/2
+biased_coin <- 3/4
+heads <- 3
+
+
+fair_coin^heads * 1/2 / (fair_coin^3 * 1/2 + biased_coin^heads * 1/2)
+```
+
+As the book shows, the probability that we are flipping the fair coin is about 23%.
+
+Can you figure out how many heads in a row are necessary for the probability that we are flipping a fair coin to dip below 10%?
+
+```{r}
+n_heads <- function(heads) {
+  prob_fair <- fair_coin^heads * 1/2 / (fair_coin^3 * 1/2 + biased_coin^heads * 1/2)
+  return(prob_fair*100)
+}
+
+rows <- map(c(1:10),n_heads)
+
+q3plot <-  tibble(
+  n = 1:10,
+  prob = as.numeric(rows)
+)
+
+library(ggplot2)
+library(ggthemes)
+library(ggrepel)
+
+q3plot |> ggplot(aes(n,prob, label=n)) + geom_line() + theme_clean() + geom_hline(yintercept=10, col="tomato", linetype=2) + labs(x="Number of heads in a row", y="Probability that we are flipping the fair coin (%)") + geom_text_repel() + scale_y_continuous(breaks=c(5,10,15,20,25,30)) + scale_x_continuous(breaks=c(2,4,6,8,10))
+                               
+
+```
+
+*5 heads in a row are necessary for the probability of flipping a fair coin to dip below 10%*
+
+b.  How many heads in a row are necessary for the probability that we are flipping a fair coin to dip below 5%?
+
+```{r}
+q3plot |> ggplot(aes(n,prob, label=n)) + geom_line() + theme_clean() + geom_hline(yintercept=5, col="tomato", linetype=2) + labs(x="Number of heads in a row", y="Probability that we are flipping the fair coin") + geom_text_repel() + scale_y_continuous(breaks=c(5,10,15,20,25,30)) + scale_x_continuous(breaks=c(2,4,6,8,10))
+                               
+                               
+```
+
+*7 heads in a row are necessary for the probability of flipping a fair coin to dip below 5%*
+
+c.  What's the probability that we are flipping the fair coin given that we have seen three Tails in a row?
+
+*For this we need to compute the complement of the biased coin = 3/4, because we are interested in when the biased coin lands tails. That would be 1/4. But not that the probability of CHOOSING the biased coin is the same as choosing the fair coin. This confused me before.*
+
+```{r}
+fair_coin <- 1/2
+biased_coin <- 1/4
+tails <- 3
+
+fair_coin^tails * 1/2 / (fair_coin^tails * 1/2 + biased_coin^tails * 1/2)
+  
+```
+
+The probability is close to .89
+
+## Question 5
+
+Let's now tackle the example of Fred and his struggle with conditionitis. We'll begin by reviewing some terminology.
+
+In your own words, tell me what is the specificity of a test. What quantity is this associated with?
+
+*It is the probability of having a negative test, given that you don't have the disease. So basically, a measure that can tell you if the test is doing a good job in evading false POSITIVES, or people who test positive given that they do not have the disease*
+
+In your own words, tell me what is the sensitivity of a test. What quantity is this associated with?
+
+*It is how sensitive the test is in detecting the presence of a disease or the probability that you have a positive test given that you have the disease. It is a measure that tells you if the test is doing a good job in evading false negatives or individuals with a negative test that DO have the disease. So, for instance, a sensitivity of .9 means that 9 out of 10 people with the disease get a positive test, and only 1 out of 10 gets a negative one (a false negative)*
+
+Imagine now that both the sensitivity and specificity of the test for conditionitis is 90%. The prevalence of conditionitis in the population is still 1%. What is the probability that Fred has the disease given that he tested positive?
+
+```{r}
+sens_spec <- .9 
+prevalence <- .01
+
+sens_spec_comp <- 1-sens_spec
+prevalence_comp <- 1-prevalence 
+
+prob_dtp <- sens_spec*prevalence/((sens_spec*prevalence)+(sens_spec_comp*prevalence_comp)) 
+                                  
+prob_dtp*100                                  
+
+## Odds formula:
+
+LR <- sens_spec/(1-sens_spec) 
+LR
+
+updated_odds <- LR*(1/99) 
+prob_posterior <- 9/(LR+99) 
+
+
+```
+
+*The probability is 8%!*
+
+Andrea tests positive for conditionitis B. The test in this case is 95% accurate but - despite its name - the disease is much more common, afflicting 5% of the population. What is the probability that Andrea has the disease given that she tested positive?
+
+```{r}
+sens_spec <- .95 
+prevalence <- .05
+
+sens_spec_comp <- 1-sens_spec
+prevalence_comp <- 1-prevalence 
+
+prob_andrea <- sens_spec*prevalence/((sens_spec*prevalence)+(sens_spec_comp*prevalence_comp)) 
+                                  
+prob_andrea*100                                  
+
+## Odds formula
+
+LR <- .95/.05
+LR 
+prevalence_odds <- 5/95 
+## Conversion to probability
+
+(19*5) ## the numerator = 
+(19*5)+95 ## denominator
+
+posterior_probability <- 95/190
+posterior_probability
+
+```
+
+Fill out the XXs appropriately. Follow what Blitzstein and Hwang did for conditionitis but do it for conditionitis B. Remember the main difference is that the former affects 1% of the population while the latter affects 5%.
+
+```{r}
+
+tree <-
+    create_graph() %>% # initiate graph
+    add_n_nodes(
+      n = 7, 
+      type = "path",
+      label = c("10000 People", "9500 People", "500 People", "475 people", "9025 people", "25 people", "475 people"), # Labels for each node
+      node_aes = node_aes(
+        shape = "circle",
+        height = 1,
+        width = 1,
+        x = c(0, 3, 3, 6, 6, 6, 6), # Just the heights of each node (so it looks like a tree)
+        y = c(0, 2, -2, 3, 1, -3, -1))) %>% 
+    add_edge(
+      from = 1,
+      to = 2,
+      edge_aes = edge_aes(
+        label = "healthy"
+      )) %>% 
+  add_edge(
+      from = 1,
+      to = 3,
+      edge_aes = edge_aes(
+        label = "diseased"
+      )) %>% 
+  add_edge(
+      from = 2,
+      to = 4,
+      edge_aes = edge_aes(
+        label = "test +"
+      )) %>% 
+  add_edge(
+      from = 2,
+      to = 5,
+      edge_aes = edge_aes(
+        label = "test -"
+      )) %>% 
+  add_edge(
+      from = 3,
+      to = 6,
+      edge_aes = edge_aes(
+        label = "test-"
+      )) %>% 
+  add_edge(
+      from = 3,
+      to = 7,
+      edge_aes = edge_aes(
+        label = "test+"
+      )) 
+render_graph(tree)
+
+```
+
+We'll finish by talking about the prosecutor's fallacy. It is about equating two different conditional probabilities: P(A\|B) and P(B\|A). In this specific case, the expert confuses P(evidence\|innocence) with P(innocence\|evidence). Can you think of another example of the prosecutor's fallacy?
+
+*During the Delta wave in Israel, some newspaper headlines made the statement that the vaccines were not effective because a relatively high percent of the people who tested positive for COVID were vaccinated. This is an example of the prosecutor's fallacy because it uses P(Vaccinated\|Positive) instead of P(Positive\|Vaccinated) to give an interpretation of the efficacy of a vaccine.*
+
+*Thus, journalists are starting with the right foot from the beginning. However, they could not have made their headlines had the vaccine rates in Israel been lower. A way to make sense of this confusion using Bayes rule is the following (journalist of course did not use Bayes, just the proportion of vaccinated individuals that tested positive):*
+
+
+```{r}
+p_vax <- .1 ## Suppose only 1% of the population is vaccinated 
+p_posvax <- .05 ## Vaccines ARE effective, so the P(Positive | Vaccine) is close to .05
+p_positive <- .4 ## Let us suppose that the probs of testing positive is high because of the wave, say .4 
+
+
+p_vaxpos <- p_posvax*p_vax/p_positive ## the prob of p(Vaccine|Positive test) -- what the Journalists were rerporting
+
+p_vaxpos
+
+```
+
+*This is low! and would not make the headlines. However...given that Israel has a HIGH proportion of vaccinated adults, the numbers came out different:*
+
+
+```{r}
+p_vax <- .9
+p_posvax <- .05
+p_positive <- .4
+
+
+p_vaxpos <- p_posvax*p_vax/p_positive
+
+p_vaxpos
+
+```
+
+*11% sounds like a lot more! and that was what the news outlets were being so alarmist. But this number is affected by the high percent of population in Israel that is vaccinated. However, as we know, this is not the correct way to estimate the efficacy of vaccines. The correct way is estimating the probability of testing positive given that you received the vaccine, which is what they do in clinical trials*
