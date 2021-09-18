@@ -199,7 +199,7 @@ Can you figure out how many heads in a row are necessary for the probability tha
 
 ```{r}
 n_heads <- function(heads) {
-  prob_fair <- fair_coin^heads * 1/2 / (fair_coin^3 * 1/2 + biased_coin^heads * 1/2)
+  prob_fair <- fair_coin^heads * 1/2 / (fair_coin^heads * 1/2 + biased_coin^heads * 1/2)
   return(prob_fair*100)
 }
 
@@ -219,7 +219,7 @@ q3plot |> ggplot(aes(n,prob, label=n)) + geom_line() + theme_clean() + geom_hlin
 
 ```
 
-*5 heads in a row are necessary for the probability of flipping a fair coin to dip below 10%*
+*6 heads in a row are necessary for the probability of flipping a fair coin to dip below 10%*
 
 b.  How many heads in a row are necessary for the probability that we are flipping a fair coin to dip below 5%?
 
@@ -229,7 +229,7 @@ q3plot |> ggplot(aes(n,prob, label=n)) + geom_line() + theme_clean() + geom_hlin
                                
 ```
 
-*7 heads in a row are necessary for the probability of flipping a fair coin to dip below 5%*
+*8 heads in a row are necessary for the probability of flipping a fair coin to dip below 5%*
 
 c.  What's the probability that we are flipping the fair coin given that we have seen three Tails in a row?
 
