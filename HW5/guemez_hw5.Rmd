@@ -1,0 +1,887 @@
+---
+title: "Bayes Rules! 1 & 2"
+author: "Braulio Güémez"
+date: "20/9/2021"
+output: html_document
+---
+
+```{r}
+library(bayesrules)
+library(tidyverse)
+library(janitor)
+library(ggplot2)
+```
+
+# 1. Chapter 1 - Exercises
+
+**Exercise 1.1 (Bayesian Chocolate Milk)** In the fourth episode of the sixth season of the television show *Parks and Recreation*, Deputy Director of the Pawnee Parks and Rec department, Leslie Knope, is being subjected to an inquiry by Pawnee City Council member Jeremy Jamm due to an inappropriate tweet from the official Parks and Rec Twitter account. The following exchange between Jamm and Knope is an example of Bayesian thinking:
+
+**JJ:** "When this sick depraved tweet first came to light, you said 'the account was probably hacked by some bored teenager.' Now you're saying it is an unfortunate mistake. Why do you keep flip-flopping?"
+
+**LK:** "Well because I learned new information. When I was four, I thought chocolate milk came from brown cows. And then I 'flip-flopped' when I found that there was something called chocolate syrup."
+
+**JJ:** "I don't think I'm out of line when I say this scandal makes Benghazi look like Whitewater."
+
+1.  Identify possible prior information for Leslie's chocolate milk story.
+
+*Leslie thought that the color of the milk was a result of the color of the cow, because she had identified that match in the case of non-chocolate milk.*
+
+2.  Identify the data that Leslie weighed against that incoming information in her chocolate milk story.
+
+*Chocolate, an important component of chocolate milk, is dark brown.*
+
+3.  Identify the updated conclusion from the chocolate milk story.
+
+*The color of the milk in chocolate milk comes from the chocolate component. That is why it is brown. Not because of the cow's color.*
+
+**Exercise 1.2 (Stats Tweets)** In May 2020 the Twitter user \@frenchpressplz tweeted^[10](https://www.bayesrulesbook.com/chapter-1.html#fn10)^ "Normalize changing your mind when presented with new information." We consider this a \#BayesianTweet.
+
+1.  Write your own \#BayesianTweet.
+
+    *Life is a continuous updating of beliefs until you die, or decide to stop taking evidence into account.*
+
+2.  Write your own \#FrequentistTweet.
+
+    *It doesn't matter how many lives we life, it will all the times consist of the painful waiting for the event we are 100% certain will happen: that we will die.*
+
+**Exercise 1.3 (When was the last time you changed your mind?)** Think of a recent situation in which you changed your mind. As with the Italian restaurant example (Figure [1.1](https://www.bayesrulesbook.com/chapter-1.html#fig:restaurant-diagram)), make a diagram that includes your prior information, your new data that helped you change your mind, and your posterior conclusion.
+
+```{r}
+
+library(DiagrammeR)
+library(tidyverse)
+
+ 
+ tree <- create_graph() %>% # initiate graph
+    add_n_nodes(
+      n = 3, 
+      type = "path",
+      label = c("Prior", "Data", "Posterior"), # Labels for each node
+      node_aes = node_aes(
+        shape = "circle",
+        height = 1,
+        width = 1,
+        x = c(0, 0, 3), # Just the heights of each node (so it looks like a tree)
+        y = c(0, 1, 0))) %>% 
+    add_edge(
+      from = 1,
+      to = 3,
+      edge_aes = edge_aes(
+        label = "Violence is socially caused"
+      )) %>% 
+  add_edge(
+      from = 2,
+      to = 3,
+      edge_aes = edge_aes(
+        label = "Lead is a neurotoxin"
+      ))
+render_graph(tree)
+```
+
+I used to believe that violence was only a consequence of complex social and psychological factors (Prior). But then, I read that lead is a neurotoxin that is related to violent behavior (data). That made me change my definition of violence as something caused also by non-social factors.
+
+**Exercise 1.4 (When was the last time you changed someone else's mind?)** Think of a recent situation in which you had a conversation in which you changed someone else's mind. As with the Italian restaurant example (Figure [1.1](https://www.bayesrulesbook.com/chapter-1.html#fig:restaurant-diagram)), make a diagram that includes the prior information, the new data that helped you change their mind, and the posterior conclusion.
+
+```{r}
+ tree <- create_graph() %>% # initiate graph
+    add_n_nodes(
+      n = 3, 
+      type = "path",
+      label = c("Prior", "Data", "Posterior"), # Labels for each node
+      node_aes = node_aes(
+        shape = "circle",
+        height = 1,
+        width = 1,
+        x = c(0, 0, 3), # Just the heights of each node (so it looks like a tree)
+        y = c(0, 1, 0))) %>% 
+    add_edge(
+      from = 2,
+      to = 3,
+      edge_aes = edge_aes(
+        label = "Actual US temperatures"
+      )) %>% 
+  add_edge(
+      from = 1,
+      to = 3,
+      edge_aes = edge_aes(
+        label = "US is never hot"
+      ))
+render_graph(tree)
+```
+
+*My cousin used to believe that the US was always very cold because of what she saw in the movies (Prior). But after I told her about my experience of Durham during the summer, (Data) she updated her belief. Now she is aware that it can get really hot up here.*
+
+**Exercise 1.5 (Changing views on Bayes)** When one of the book authors started their masters degree in Biostatistics, they had never used Bayesian statistics before, thus felt neutral about the topic. In their first semester, they used Bayes to learn about diagnostic tests for different diseases, saw how important Bayes was, and became very interested in the topic. In their second semester, their mathematical statistics course included a Bayesian exercise involving ant eggs which both disgusted them and felt unnecessarily difficult -- they became disinterested in Bayesian statistics. In the first semester of their Biostatistics doctoral program, they took a required Bayes class with an excellent professor, and became exceptionally interested in the topic. Draw a Bayesian knowledge building diagram that represents the author's evolving opinion about Bayesian statistics.
+
+```{r}
+
+ tree <- create_graph() %>% # initiate graph
+    add_n_nodes(
+      n = 7, 
+      type = "path",
+      label = c("Prior 1", "Data 1", "Posterior 1", "Posterior 2", "Data 2", "Posterior 3", "Data 3"), # Labels for each node
+      node_aes = node_aes(
+        shape = "circle",
+        height = 1,
+        width = 1,
+        x = c(0, 0, 3, 1,3.5, 3.5, .5 ), # Just the heights of each node (so it looks like a tree)
+        y = c(0, 1, 0, -1.5, -1, -2.5,-2.5))) %>% 
+    add_edge(
+      from = 2,
+      to = 3,
+      edge_aes = edge_aes(
+        label = "Diagnostic tests analysis"
+      )) %>% 
+  add_edge(
+      from = 3,
+      to = 4,
+      edge_aes = edge_aes(
+        label = "Very interested in Bayes"
+      )) |> 
+     add_edge(
+      from = 5,
+      to = 4,
+      edge_aes = edge_aes(
+        label = "Difficult ant eggs exercise"
+      )) |> 
+     add_edge(
+      from = 1,
+      to = 3,
+      edge_aes = edge_aes(
+        label = "Neutral about Bayes"
+        )) |> 
+     add_edge(
+      from = 4,
+      to = 6,
+      edge_aes = edge_aes(
+        label = "Disinterested about B"
+      )) |> 
+     add_edge(
+      from = 7,
+      to = 6,
+      edge_aes = edge_aes(
+        label = "First Ph.D. semester Biostatistics"
+      )) |> 
+   add_node(
+     type="path",
+     label="Present Belief",
+     node_aes = node_aes(x=2,y=-3.5, shape="square")
+   ) |> 
+   add_edge(
+      from = 6,
+      to = 8,
+        edge_aes = edge_aes(
+        label = "I love Bayes!"
+      ))
+   
+     
+render_graph(tree)
+
+```
+
+**Exercise 1.6 (Applying for an internship)** There are several data scientist openings at a much-ballyhooed company. Having read the job description, you know for a fact that you are qualified for the position: this is your *data*. Your goal is to ascertain whether you will actually be offered a position: this is your *hypothesis*.
+
+1.  From the perspective of someone *using frequentist thinking*, what question is answered in testing the hypothesis that you'll be offered the position?
+
+*If I get a rejection of the job offer, what is the probability than someone with my qualifications had been among the applicants?*
+
+1.  Repeat part a from the perspective of someone *using Bayesian thinking*.
+
+    *What are the probabilities that I will get an offer given my expertise?*
+
+2.  Which question would you rather have the answer to: the frequentist or the Bayesian? Explain your reasoning.
+
+    *The Bayesian framework seems more natural to me because at the moment, the only thing I know is my level of expertise, and MAYBE (by googling names) the level of expertise of those who are hired in the company, so I can update my prior based on that and have a more realistic approach to the question.*
+
+**Exercise 1.7 (You already know stuff)**
+
+1.  Identify a topic that you know about (eg: a sport, a school subject, music).
+
+2.  Identify a hypothesis about this subject.
+
+    *Public transport is mostly used by black people in Durham*
+
+3.  How would your current expertise inform your conclusion about this hypothesis?
+
+    *We know that race is intersected with class and because of that, black individuals tend to find less affordable to buy a car than white individuals*
+
+4.  Which framework are you employing here, Bayesian or frequentist?
+
+    *I am using a Bayesian framework because my knowledge about the tendencies of race and class in society update my beliefs about who use the public transport in Durham.*
+
+**Exercise 1.8 (Benefits of Bayesian Statistics)** Your friend just became interested in Bayesian statistics. Explain to them:
+
+1.  Why is Bayesian statistics useful?
+
+    *Bayesian statistics takes evidence into account when trying to estimate the probability of events happening. Thus, probabilities of events are constantly being updated based on the new evidence we gather about how the world works. This logic can get us closer to predict those events as well, which is quite useful.*
+
+2.  What are the similarities in Bayesian and frequentist statistics?
+
+*Both try to estimate the levels of uncertainty around events in the world and both try to do so through model design and evaluation of hypothesis. Also, we typically get to very similar conclusions when working with the same data.*
+
+# 1. Chapter 2 - Exercises
+
+**Exercise 2.1 (Comparing the prior and posterior)** For each scenario below, you're given a pair of events, A and B. Explain what you believe to be the relationship between the posterior and prior probabilities of B: P(B\|A)\>P(B) or P(B\|A)\<P(B).
+
+a\. A = you just finished reading Lambda Literary Award-winning author Nicole Dennis-Benn's first novel, and you enjoyed it! B = you will also enjoy Benn's newest novel.
+
+1.  *P(B\|A)\>P(B) because you are already biased by the crush you had int he first novel! You would enjoy the novel way less if you hadn't read the first one*
+
+    b\. A = it's 0 degrees Fahrenheit in Minnesota on a January day. B = it will be 60 degrees tomorrow.
+
+*Assuming "tomorrow" means a day close to January 1, P(B\|A)\<P(B) because getting 60 degrees after having 0 degrees is a huge spike, which I believe is less likely than not knowing that information about the zero degrees in a January day.*
+
+*c.* A = the authors only got 3 hours of sleep last night. B = the authors make several typos in their writing today.
+
+*P(B\|A)\>P(B) because sleeping prevents you from making typos!*
+
+*d.* A = your friend includes three hashtags in their tweet. B = the tweet gets retweeted.
+
+*P(B\|A)\<P(B), because no one retweets tweets that have a lot of hashtags! unless you are a celebrity*
+
+Exercise 2.2 (Marginal, conditional, or joint?) Define the following events for a resident of a fictional town:\
+A = drives 10 miles per hour above the speed limit,\
+B = gets a speeding ticket,\
+C = took statistics at the local college,\
+D = has used R,\
+E = likes the music of Prince, and\
+F = is Minnesotan.
+
+Several facts about these events are listed below. Specify each of these facts using probability notation, paying special attention to whether it's a marginal, conditional, or joint probability.
+
+73% of people that drive 10 miles per hour above the speed limit get a speeding ticket.
+
+*p (B \| A) = .73. This is a conditional probability*
+
+20% of residents drive 10 miles per hour above the speed limit.
+
+*p (B ) = .20 This is a marginal probability*
+
+15% of residents have used R.
+
+*p (D) = .15 This is a marginal probability*
+
+91% of statistics students at the local college have used R.
+
+*p(D\|C) = .91 This is a conditional probability*
+
+38% of residents are Minnesotans that like the music of Prince.
+
+*p(F&E) = .38. This is joint probability*
+
+95% of the Minnesotan residents like the music of Prince.
+
+*P(E\|F) = .95 This is a conditional probability*
+
+**Exercise 2.3 (Binomial practice)** For each variable Y below, determine whether Y is Binomial. If yes, use notation to specify this model and its parameters. If not, explain why the Binomial model is not appropriate for Y.
+
+1.  At a certain hospital, an average of 6 babies are born each hour. Let Y be the number of babies born between 9am and 10am tomorrow.
+
+*A Bayesian model is not appropriate for Y, because the prior does not fulfill the definition of the probability of success or failure of an event (in this case, having a baby in one hour).*
+
+1.  Tulips planted in fall have a 90% chance of blooming in spring. You plant 27 tulips this year. Let YY be the number that bloom.
+
+$Y|π∼Bin(27,.9)$
+
+```{r}
+set.seed(23)
+tulip <- rbinom(1000, size = 27, prob = .90)
+tulip_s <-  tibble(bloomed=tulip) |> group_by(bloomed) |> summarize(count=n()) 
+tulip_s |> ggplot(aes(bloomed, count)) + geom_col() + scale_x_continuous(breaks=c(1:27))
+ 
+```
+
+
+
+2. Each time they try out for the television show *Ru Paul's Drag Race*, Alaska has a 17% probability of succeeding. Let Y be the number of times Alaska has to try out until they're successful.
+
+    *Y is not appropriate for Binomial modeling because you can't know how many times Alaska needs to try to succeed. You can only estimate what is the probability that Alaska would succeed y times.*
+
+    \*So, for instance you can say, if Alaska tried 50 times, this is how the distribution of the number of times she would win:"
+
+```{r}
+set.seed(23)
+alaska <- rbinom(100, size = 50, prob = .17)
+alaska_s <-  tibble(times_tried=alaska) |> group_by(times_tried) |> summarize(count=n()) 
+alaska_s |> ggplot(aes(times_tried, count)) + geom_col() + scale_y_continuous(breaks=c(1:27))
+ 
+```
+
+3.  Y is the amount of time that Henry is late to your lunch date.
+
+*A Binomial model is not appropriate for Y, because it doesn't count how many events succeeded or not*
+
+4.  Y is the probability that your friends will throw you a surprise birthday party even though you said you hate being the center of attention and just want to go out to eat.
+
+*A Binomial model is not appropriate for Y, because it doesn't count how many events succeeded or not*
+
+5.  You invite 60 people to your "ππ day" party, none of whom know each other, and each of whom has an 80% chance of showing up. Let Y be the total number of guests at your party
+
+$Y|π∼Bin(60,.8)$
+
+```{r}
+set.seed(23)
+party <- rbinom(10000, size = 60, prob = .8)
+party_s <-  tibble(people=party) |> group_by(people) |> summarize(
+  count=n()) 
+party_s |> ggplot(aes(people, count)) + geom_col() + scale_x_continuous(breaks=c(1:60))
+ 
+```
+
+**Exercise 2.4 (Vampires?)** Edward is trying to prove to Bella that vampires exist. Bella thinks there is a 0.05 probability that vampires exist. She also believes that the probability that someone can sparkle like a diamond if vampires exist is 0.7, and the probability that someone can sparkle like a diamond if vampires don't exist is 0.03. Edward then goes into a meadow and shows Bella that he can sparkle like a diamond. Given that Edward sparkled like a diamond, what is the probability that vampires exist?
+
+```{r}
+prior_vampires <- .05
+
+cond_diamond_vamp <- .7
+
+cond_diamond_novamp <- .03
+
+posterior <- prior_vampires*cond_diamond_vamp/(prior_vampires*cond_diamond_vamp+((1-prior_vampires)*(cond_diamond_novamp))) 
+
+posterior
+
+```
+
+there is a 55% chance that Edward is a vampire
+
+**Exercise 2.5 (Sick trees)** A local arboretum contains a variety of tree species, including elms, maples, and others. Unfortunately, 18% of all trees in the arboretum are infected with mold. Among the infected trees, 15% are elms, 80% are maples, and 5% are other species. Among the uninfected trees, 20% are elms, 10% are maples, and 70% are other species. In monitoring the spread of mold, an arboretum employee randomly selects a tree to test.
+
+1.  What's the prior probability that the selected tree has mold?
+
+    .*18*
+
+2.  The tree happens to be a maple. What's the probability that the employee would have selected a maple?
+
+    *p(maple) = p(maple&mold) + p(maple&nomold) = .8\*.18 +.10\*.82 = .226 . The probability of selecting a maple is 22.6%*
+
+3.  What's the posterior probability that the selected maple tree has mold?
+
+    p(mold\|maple) = p(mold)p(maple\|mold) / p(maple) = .18\*.8/.226 = .64 or 64%
+
+4.  Compare the prior and posterior probability of the tree having mold. How did your understanding change in light of the fact that the tree is a maple?
+
+*In general, there is a low prevalence of mold (.18%) but the overwhelming majority of trees that get infected with it are maples! so when we know that the tree we chose is a maple, our posterior goes up.*
+
+**Exercise 2.6 (Restaurant ratings)** The probability that Sandra will like a restaurant is 0.7. Among the restaurants that she likes, 20% have five stars on Yelp, 50% have four stars, and 30% have fewer than four stars. What other information do we need if we want to find the posterior probability that Sandra likes a restaurant given that it has fewer than four stars on Yelp?
+
+*We would need the list of restaurants Sandra doesn't like, so we can calculate how many of those have less than four stars. This would help us to write the denominator in our Bayes Rule equation.*
+
+**Exercise 2.7 (Dating app)** Matt is on a dating app looking for love. Matt swipes right on 8% of the profiles he views. Of the people that Matt swipes right on, 40% are men, 30% are women, 20% are non-binary, and 10% identify in another way. Of the people that Matt does not swipe right on, 45% are men, 40% are women, 10% are non-binary, and 5% identify in some other way.
+
+1.  What's the probability that a randomly chosen person on this dating app is non-binary?
+
+*Following the rule of total probability: .2\*.08 (nonbin&right) + .92\*.1 (nonbin&noright) = .108 or 10%*
+
+1.  Given that Matt is looking at the profile of someone who is non-binary, what's the posterior probability that he swipes right?
+
+*Using Bayes Rule: .2\*.08 (nonbin&right) / .108 (nonbin) = .14814*
+
+**Exercise 2.8 (Flight delays)** For a certain airline, 30% of the flights depart in the morning, 30% depart in the afternoon, and 40% depart in the evening. Frustratingly, 15% of all flights are delayed. Of the delayed flights, 40% are morning flights, 50% are afternoon flights, and 10% are evening flights. Alicia and Mine are taking separate flights to attend a conference.
+
+1.  Mine is on a morning flight. What's the probability that her flight will be delayed?
+
+*p(delay\| morning) = .15\*.4(delay&morning) / (.3) (morning) = .2 = 20%*
+
+1.  Alicia's flight is not delayed. What's the probability that she's on a morning flight?
+
+*Since P(Morning \| non-delay) = p (Morning & non-delay) / p(non-delay), we need to obtain the first component.*
+
+*We can calculate the joint probability with the law of total probability:*
+
+p(morning&non-delay)= P(morning)- p(morning&delay) = .3 - (.4\*.15) = .24
+
+*Non we can plug in the values in the aforementioned equation:*
+
+*P(Morning \| non-delay) =.24/.85 = .28 = or 28 %\
+*
+
+**Exercise 2.9 (Good mood, bad mood)** Your roommate has two moods, good or bad. In general, they're in a good mood 40% of the time. Yet you've noticed that their moods are related to how many text messages they receive the day before. If they're in a good mood today, there's a 5% chance they had 0 texts, an 84% chance they had between 1 and 45 texts, and an 11% chance they had more than 45 texts yesterday. If they're in a bad mood today, there's a 13% chance they had 0 texts, an 86% chance they had between 1 and 45 texts, and a 1% chance they had more than 45 texts yesterday.
+
+1.  Use the provided information to fill in the table above.
+
+```{r}
+good_cond <- c(.05,.84,.11)
+bad_cond <-  c(.13,.86,.01)
+
+table_r <- tibble(good=good_cond*.4,
+       bad=bad_cond*.6) 
+table_r 
+
+
+```
+
+2.  Today's a new day. Without knowing anything about the previous day's text messages, what's the probability that your roommate is in a good mood? What part of the Bayes' Rule equation is this: the prior, likelihood, normalizing constant, or posterior?
+
+*This would be the prior, which in this case equals .4*
+
+3.  You surreptitiously took a peek at your roommate's phone (we are attempting to withhold judgment of this dastardly maneuver) and see that your roommate received 50 text messages yesterday. How likely are they to have received this many texts if they're in a good mood today? What part of the Bayes' Rule equation is this?
+
+*This would be the likelihood, which in this case equals .11 or P(50 text messages \| good mood)*
+
+4.  What is the posterior probability that your roommate is in a good mood given that they received 50 text messages yesterday?
+
+*Following Bayes that would be .4\*.11/.05 . I calculated .05 with the law of total probability = .11.4+.01.6. The probability is 88%!*
+
+**Exercise 2.10 (LGBTQ students: rural and urban)** A recent study of 415,000 Californian public middle school and high school students found that 8.5% live in rural areas and 91.5% in urban areas.^[21](https://www.bayesrulesbook.com/chapter-2.html#fn21)^ Further, 10% of students in rural areas and 10.5% of students in urban areas identified as Lesbian, Gay, Bisexual, Transgender, or Queer (LGBTQ). Consider one student from the study.
+
+1.  What's the probability they identify as LGBTQ?
+
+    *Using the Law of total probability = (.10\*.085) + (.105\*.915) = .104575*
+
+2.  If they identify as LGBTQ, what's the probability that they live in a rural area?
+
+    *Following Bayes that would be = .085\*.10/.104575 = .081 = 8.1%*
+
+3.  If they do not identify as LGBTQ, what's the probability that they live in a rural area?
+
+    *Following Bayes that would be = .085\*.90/(1-.104575) = .085 = 8.5%*
+
+### 2.5.3 Practice Bayes' Rule for random variables
+
+**Exercise 2.11 (Internship)** Muhammad applies for six equally competitive data science internships. He has the following prior model for his chances of getting into any given internship (π):
+
+1.  Let Y be the number of internship offers that Muhammad gets. Specify the model for the dependence of Y on π and the corresponding pmf, f(y\\π)
+
+$$f(Y|π)=6Cy*π^y*(1-π)^{6-y}\text{    for y in [0,1,2...6]} $$
+
+For example, the conditional pmf of receiving 3 offers out of 6, given tha:
+
+```{r}
+dbinom(0,6,.8)
+```
+
+Muhammad got some pretty amazing news. He was offered four of the six internships! How likely would this be if π=0.3?
+
+```{r}
+
+choose(6,4)*.3^4*(1-.3)^(6-4) ## We can plug in the numbers
+
+dbinom(4,6,.3) ## or use dbinom function
+
+
+```
+
+2.  Construct the posterior model of π in light of Muhammad's internship news
+
+```{r}
+probs <- c(.3,.4,.5) 
+priors <- c(.25,.60,.15)
+
+## Likelihoods
+
+likelihood <- function(pi) {
+  lh <- dbinom(4,6,pi)
+  return(lh)
+}
+
+lhood <-likelihood(probs)
+
+## normalizing constant
+constant <- sum(likelihood(probs)*priors)
+
+## Bayes posterior model: 
+
+posterior_mod <- tibble(
+  probs=probs, 
+  priors=priors,
+  lhood=lhood,
+  normalizing_constant=(rep(constant,3))) |> mutate(posterior=priors*lhood/constant) |> 
+  select(probs, posterior)
+posterior_mod
+```
+
+Exercise 2.12 (Making mugs) Miles is learning how to make a mug in his ceramics class. A difficult part of the process is creating or "pulling" the handle. His prior model of π , the probability that one of his handles will actually be good enough for a mug, is below:
+
+Miles has enough clay for 7 handles. Let YY be the number of handles that will be good enough for a mug. Specify the model for the dependence of YY on ππ and the corresponding pmf, f(y\|π)
+
+$$Y|π∼Bin(7,π)$$
+
+$$f(Y|π)=7Cy*π^y*(1-π)^{7-y}\text{    for y in [0,1,2...7]} $$
+
+Miles pulls 7 handles and only 1 of them is good enough for a mug. What is the posterior pmf of π, f(π\|y=1)?
+
+```{r}
+probs <- c(.1,.25,.4) 
+priors <- c(.2,.45,.35)
+
+## Likelihoods
+
+likelihood <- function(pi) {
+  lh <- dbinom(1,7,pi)
+  return(lh)
+}
+
+lhood <-likelihood(probs)
+
+## normalizing constant
+constant <- sum(likelihood(probs)*priors)
+
+## Bayes posterior model: 
+
+all_models <- tibble(
+  probs=probs, 
+  priors=priors,
+  lhood=lhood,
+  normalizing_constant=(rep(constant,3))) |> mutate(posterior=priors*lhood/constant) |> 
+  select(probs, posterior, priors)
+
+post_plot <- all_models |>  ggplot(aes(probs,posterior)) + geom_col() 
+prior_plot <-  all_models |>  ggplot(aes(probs,priors)) + geom_col()
+library(ggpubr)
+
+ggarrange(prior_plot, post_plot,
+                    ncol = 2, nrow = 1)
+
+```
+
+Compare the posterior model to the prior model of π. How would you characterize the differences between them?
+
+*Both models predict a higher probability for pi=.25. The difference is that posterios probs predicted lower values for the rest of the pies than the prior probs*
+
+Miles' instructor Kris had a different prior for his ability to pull a handle (below). Find Kris' posterior f(π\|y=1)f(π\|y=1) and compare it to Miles'
+
+```{r}
+probs <- c(.1,.25,.4) 
+priors <- c(.15,.15,.7)
+
+## Likelihoods
+
+likelihood <- function(pi) {
+  lh <- dbinom(1,7,pi)
+  return(lh)
+}
+
+lhood <-likelihood(probs)
+
+## normalizing constant
+constant <- sum(likelihood(probs)*priors)
+
+## Bayes posterior model: 
+
+all_models_kris <- tibble(
+  probs_kris=probs, 
+  priors=priors,
+  lhood=lhood,
+  normalizing_constant=(rep(constant,3))) |> mutate(posterior_kris=priors*lhood/constant) |> 
+  select(probs_kris, posterior_kris, priors)
+
+post_plot_k <- all_models_kris |>  ggplot(aes(probs_kris,posterior_kris)) + geom_line() + geom_point()
+post_plot <- all_models |>  ggplot(aes(probs,posterior)) + geom_line() + geom_point()
+
+
+ggarrange(post_plot, post_plot_k,
+                    ncol = 2, nrow = 1)
+
+```
+
+In Kris' model the posterior probabilities are still higher given that he's an expert! and his prior probabilities were also very skewed to the right.
+
+**Exercise 2.13 (Lactose intolerant)** Lactose intolerance is an inability to digest milk often resulting in an upset stomach. Fatima wants to learn more about the proportion of adults who are lactose intolerant, π. Her prior model for π is:
+
+Fatima surveys a random sample of 80 adults and 47 are lactose intolerant. Without doing any math, make a guess at the posterior model of π, and explain your reasoning.
+
+*The speculative posterior model would definitely place more weight to the .5-.6 pi interval*
+
+1.  Calculate the posterior model. How does this compare to your guess in part a?
+
+```{r}
+probs <- c(.4,.5,.6,.7) 
+priors <- c(.1,.2,.44,.26)
+
+## Likelihoods
+
+likelihood <- function(pi) {
+  lh <- dbinom(47,80,pi)
+  return(lh)
+}
+
+lhood <-likelihood(probs)
+
+## normalizing constant
+constant <- sum(likelihood(probs)*priors)
+
+## Bayes posterior model: 
+
+posterior_lac <- tibble(
+  probs_kris=probs, 
+  priors=priors,
+  lhood=lhood,
+  normalizing_constant=(rep(constant,4))) |> mutate(posterior_kris=priors*lhood/constant) |> 
+  select(probs_kris, posterior_kris, priors)
+
+posterior_lac |>  ggplot(aes(probs_kris,posterior_kris)) + geom_col()
+
+
+```
+
+1.  The posterior matches with my prediction of a swollen posterior probability in pi=.6. It is 83%!
+
+2.  If Fatima had instead collected a sample of 800 adults and 470 (keeping the sample proportion the same as above) are lactose intolerant, how does that change the posterior model?
+
+```{r}
+## Likelihoods
+
+likelihood <- function(pi) {
+  lh <- dbinom(470,800,pi)
+  return(lh)
+}
+
+lhood <-likelihood(probs)
+
+## normalizing constant
+constant <- sum(likelihood(probs)*priors)
+
+## Bayes posterior model: 
+
+posterior_lac <- tibble(
+  probs_kris=probs, 
+  priors=priors,
+  lhood=lhood,
+  normalizing_constant=(rep(constant,4))) |> mutate(posterior_kris=priors*lhood/constant) |> 
+  select(probs_kris, posterior_kris, priors)
+
+posterior_lac |>  ggplot(aes(probs_kris,posterior_kris)) + geom_point()
+
+
+
+
+
+
+
+
+
+```
+
+The increase of the sample leads to a much higher certainty that the lactose-intolerant adults proportion is .6!
+
+**Exercise 2.14 (Late bus)** Li Qiang takes the 8:30am bus to work every morning. If the bus is late, Li Qiang will be late to work. To learn about the probability that her bus will be late (ππ), Li Qiang first surveys 20 other commuters: 3 think ππ is 0.15, 3 think ππ is 0.25, 8 think ππ is 0.5, 3 think ππ is 0.75, and 3 think ππ is 0.85.
+
+1.  Convert the information from the 20 surveyed commuters into a prior model for ππ.
+
+    ```{r}
+
+    probs <- c(.15,.25,.5,.75,.85)
+    priors <- c(3,3,8,3,3)/20
+    prior_mod <- tibble(pi=probs, prior=priors)
+    prior_mod
+    ```
+
+2.  Li Qiang wants to update that prior model with the data she collected: in 13 days, the 8:30am bus was late 3 times. Find the posterior model for ππ.
+
+    ```{r}
+    ## Likelihoods
+
+    likelihood <- function(pi) {
+      lh <- dbinom(3,13,pi)
+      return(lh)
+    }
+
+    lhood <-likelihood(probs)
+
+    ## normalizing constant
+    constant <- sum(likelihood(probs)*priors)
+
+    ## Bayes posterior model: 
+
+    posterior_lac <- tibble(
+      probs_kris=probs, 
+      priors=priors,
+      lhood=lhood,
+      normalizing_constant=(rep(constant,5))) |> mutate(posterior_kris=priors*lhood/constant) |> 
+      select(probs_kris, posterior_kris, priors)
+
+    posterior_lac |>  ggplot(aes(probs_kris,posterior_kris)) + geom_col() + geom_point(aes(probs_kris,priors)) + geom_line(aes(probs_kris,priors)) 
+
+
+    ```
+
+3.  Compare and comment on the prior and posterior models. What did Li Qiang learn about the bus?
+
+As shown in the Figure, the posterior probability (bars) significantly increased in pi=.25, which is coherent with what we observed in reality. The .50 probability is reduced but not completely eliminated. This is because it had a strong probability in the prior model (points). Li learned that buses are less late than she thought (50% of the times)
+
+**Exercise 2.15 (Cuckoo birds)** Cuckoo birds are *brood parasites*, meaning that they lay their eggs in the nests of other birds (hosts), so that the host birds will raise the cuckoo bird hatchlings. Lisa is an ornithologist studying the success rate, ππ, of cuckoo bird hatchlings that survive at least one week. She is taking over the project from a previous researcher who speculated in their notes the following prior model for ππ:
+
+If the previous researcher had been more sure that a hatchling would survive, how would the prior model be different?
+
+*He would have skewed the prob distribution to the right. For instance, he would have put more weight to pi=.75*
+
+1.  If the previous researcher had been less sure that a hatchling would survive, how would the prior model be different?
+
+*He would have allowed lower pi values and skew the prob distribution to the left.*
+
+1.  Lisa collects some data. Among the 15 hatchlings she studied, 10 survived for at least one week. What is the posterior model for ππ?
+
+```{r}
+probs <- c(.6,.65,.7,.75) 
+priors <- c(.3,.4,.2,.1)
+
+## Likelihoods
+
+likelihood <- function(pi) {
+  lh <- dbinom(10,15,pi)
+  return(lh)
+}
+
+lhood <-likelihood(probs)
+
+## normalizing constant
+constant <- sum(likelihood(probs)*priors)
+
+## Bayes posterior model: 
+
+posterior_lac <- tibble(
+  probs_kris=probs, 
+  priors=priors,
+  lhood=lhood,
+  normalizing_constant=(rep(constant,4))) |> mutate(posterior_kris=priors*lhood/constant) |> 
+  select(probs_kris, posterior_kris, priors)
+
+posterior_lac |>  ggplot(aes(probs_kris,posterior_kris)) + geom_col() + geom_point(aes(probs_kris, priors)) + geom_line(aes(probs_kris, priors))
+```
+
+1.  Lisa needs to explain the posterior model for ππ in a research paper for ornithologists, and can't assume they understand Bayesian statistics. Briefly summarize the posterior model in context.
+
+*I would write something like this: The data I found is closely aligned with the speculative calculations of the other researcher. Given the data I observed, the chances of a cuckoo bird surviving 65% of the time at least one week after hatchling is close to 45%.*
+
+**Exercise 2.16 (Fake art)** An article in *The Daily Beast* reports differing opinions on the proportion (ππ) of museum artworks that are fake or forged.^[22](https://www.bayesrulesbook.com/chapter-2.html#fn22)^
+
+1.  After reading the article, define your own prior model for π and provide evidence from the article to justify your choice.
+
+    *I will increase the probabilities of the piies given by those who work at a museum, because I believe it is the most reliable source. The others have a selection bias.*
+
+```{r}
+probs <- c(.02,.4,.7,.9) 
+priors <- c(.4,.4,.2,.2)
+
+```
+
+1.  Compare your prior to that below. What's similar? Different?
+
+*It is similar in the amount of chance given to pi=.4 but is different in that I gave more weight to pi=.02. It looks like the authors of the book gave weight at the "middle" ground probability.*
+
+1.  Suppose you randomly choose 10 artworks. Assuming the prior from part b, what is the minimum number of artworks that would need to be forged for f(π=0.6\|Y=y)\>0.4?
+
+```{r}
+probs <- c(.2,.4,.6) 
+priors <- c(.25,.5,.25)
+
+## Likelihoods
+
+# We define a likelihood function
+likelihood <- function(pi,sux) {
+  lh <- dbinom(sux,10,pi)
+  return(lh)
+}
+
+# these are the number of possible successes 
+sux_v <- c(1:10)
+
+# these are the likelihoods of observing pi=.6, given all the successes 
+lhood <-likelihood(.6, sux_v)
+
+## normalizing constant
+
+#We define a basket with all the pieces to define the normalizing constant: likelihood, Y (trials that succeeded), and all the pies 
+nc_basket <- tibble(lhu=numeric(),trial=numeric(),prob=numeric(), prior=numeric())
+
+# loop that goes from 1 to 10 (all the possible Y's) for ALL the prior probs (we'll need them for the Nconsant)
+for (i in 1:10) {
+   lhu <- likelihood(probs,i)
+      nc_basket <- nc_basket |> add_row(lhu=lhu,trial=rep(i,3), prob=probs, prior=priors)  
+} 
+
+# Now we take the N.constant = likelihood*priors
+norm_k <- nc_basket |> group_by(trial) |> summarize (NC = sum(lhu*priors))
+
+## Bayes posterior model: 
+
+posterior <- tibble(
+  probs=rep(.6,10), 
+  priors=rep(.25,10),
+  lhood=lhood,
+  normalizing_constant=norm_k$NC, 
+  trials=norm_k$trial) |> mutate(posterior_p=priors*lhood/norm_k$NC) 
+
+posterior |> ggplot(aes(as.factor(trials),posterior_p)) + geom_point()  + geom_hline(yintercept=.4, linetype=2, color="tomato")
+```
+
+The minimum number of artworks is 6!
+
+### 2.5.4 Simulation exercises
+
+**Exercise 2.18 (Lactose intolerant redux)** Repeat Exercise [2.13](https://www.bayesrulesbook.com/chapter-2.html#exr:exLactose) utilizing simulation to *approximate* the posterior model of ππ corresponding to Fatima's survey data. Specifically, simulate data for 10,000 people and remember to set your random number seed.
+
+```{r}
+## Define the prior 
+
+lactose <- data.frame(pi=c(.4,.5,.6,.7)) ## lactose intolerant prop
+priors <- c(.1,.2,.44,.26) ## prior model
+
+set.seed(84735)
+lactose_sim <- sample_n(lactose, size = 10000, weight = priors, replace = TRUE)
+
+# Simulate the survey 10000 times
+lactose_sim <- lactose_sim %>% 
+  mutate(y = rbinom(10000, size = 80, prob = pi))
+
+# Summarize the prior
+lactose_sim %>% 
+  tabyl(pi) %>% 
+  adorn_totals("row")
+
+## Focus on the observed data, that would be y= 47
+
+prop_lac <- lactose_sim %>% 
+  filter(y == 47)
+
+# Summarize the posterior approximation
+prop_lac %>% 
+  tabyl(pi) %>% 
+  adorn_totals("row")
+
+```
+
+The posterior model closely matches the one I had calculated before!
+
+Exercise 2.17 (Sick trees redux) Repeat Exercise 2.5 utilizing simulation to approximate the posterior probability that the a randomly selected maple tree has mold. Specifically, simulate data for 10,000 trees and remember to set your random number seed.
+
+```{r}
+set.seed(84735)
+
+tree_m <- data.frame(mold=c("mold","no-mold"))
+
+prior <- c(.18,.82)
+
+tree_sim <- sample_n(tree_m, size = 10000, 
+                        weight = prior, replace = TRUE)
+
+tree_sim <- tree_sim |> 
+  mutate(maple = case_when(
+    mold == "mold" ~ .8,
+    mold == "no-mold" ~ .1
+      ))
+
+# Define whether the tree is a maple
+data <- c("no", "yes")
+
+# Simulate mold 
+set.seed(3)
+tree_sim <- tree_sim %>%
+  group_by(1:n()) %>% 
+  mutate(maple = sample(data, size = 1, 
+                        prob = c(1 - maple, maple)))
+
+
+tree_sim %>% 
+  tabyl(maple, mold) %>% 
+  adorn_totals(c("col","row"))
+
+
+tree_sim %>% 
+  filter(maple == "yes") %>% 
+  tabyl(mold) %>% 
+  adorn_totals("row")
+```
+
+The simulation leads to very similar results to the ones we found in the exercise!  
