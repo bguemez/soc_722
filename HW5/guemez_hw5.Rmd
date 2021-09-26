@@ -291,13 +291,11 @@ tulip_s |> ggplot(aes(bloomed, count)) + geom_col() + scale_x_continuous(breaks=
  
 ```
 
-
-
-2. Each time they try out for the television show *Ru Paul's Drag Race*, Alaska has a 17% probability of succeeding. Let Y be the number of times Alaska has to try out until they're successful.
+2.  Each time they try out for the television show *Ru Paul's Drag Race*, Alaska has a 17% probability of succeeding. Let Y be the number of times Alaska has to try out until they're successful.
 
     *Y is not appropriate for Binomial modeling because you can't know how many times Alaska needs to try to succeed. You can only estimate what is the probability that Alaska would succeed y times.*
 
-    \*So, for instance you can say, if Alaska tried 50 times, this is how the distribution of the number of times she would win:"
+    *So, for instance you can say, if Alaska tried 50 times, this is how the distribution of the number of times she would win would look like:*
 
 ```{r}
 set.seed(23)
@@ -404,10 +402,10 @@ p(morning&non-delay)= P(morning)- p(morning&delay) = .3 - (.4\*.15) = .24
 good_cond <- c(.05,.84,.11)
 bad_cond <-  c(.13,.86,.01)
 
-table_r <- tibble(good=good_cond*.4,
-       bad=bad_cond*.6) 
-table_r 
+table_r <- tibble(texts=c("0 text", "1-45", "morethan45"), good=good_cond*.4,   bad=bad_cond*.6) 
+table_r <- table_r |> add_row(good=sum(table_r$good), bad=sum(table_r$bad), texts="coltotals")  |>  mutate(rowtotals=good+bad) 
 
+table_r
 
 ```
 
@@ -884,4 +882,4 @@ tree_sim %>%
   adorn_totals("row")
 ```
 
-The simulation leads to very similar results to the ones we found in the exercise!  
+The simulation leads to very similar results to the ones we found in the exercise!
