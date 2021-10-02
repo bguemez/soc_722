@@ -1,0 +1,763 @@
+---
+title: "Exercises - Bayes Rules! 3"
+author: "Braulio Güémez"
+date: "28/9/2021"
+output: html_document
+---
+
+```{r, message=FALSE}
+library(bayesrules)
+library(tidyverse)
+library(ggplot2)
+library(ggthemes)
+
+```
+
+## Exercise 3.1. 
+
+a
+
+First, I created functions for each of the central tendency measures for the prior that are in the book 
+
+```{r}
+
+ ## We'll need these functions 
+mean <- function(alfa,beta) {
+  result <- alfa/(alfa+beta)
+  return(result)
+}
+
+vari <- function(alfa,beta) {
+  result <- alfa*beta/((alfa+beta)^2*(alfa+beta+1))
+  return(result)
+}
+
+alfa <- function(mean) {
+  result <- (mean)/(1-mean) ## assuming b=1
+  return(result)
+}
+
+```
+
+
+```{r}
+1/alfa(.4)
+```
+
+Now I know that beta is 1.5A. With this information I can try different values of alfa and beta. After many attempts I get to this conclusion: 
+
+```{r}
+plot_beta(7,10.5) ## We tune this beta distrtbution 
+quantile(rbeta(1000, 7, 10.5), c(.05,.95)) ## It's very close to what we need
+```
+
+
+
+
+Or using Steve's method:
+```{r}
+
+p <- .4
+n <- 15
+
+alpha <- p*n
+beta <- n*(1-p)
+quantile(rbeta(1000, alpha, beta), c(.05,.95))
+
+plot_beta(alpha,beta) ## We tune this beta distrtbution 
+
+
+
+
+```
+
+b. In this case, we can calculate the exact plot: 
+```{r}
+
+
+alfa(.8)
+
+# We know alfa equals 4 times B
+
+b <- seq(0,100,.1)
+a <- b*4
+p <-  vari(a,b)
+df <-  tibble(alfa=a, beta=b, p=p)
+
+df |> filter(p>.05 & p<.059)
+
+
+plot_beta(1.6,.4)
+summarize_beta(1.6,.4)
+```
+c.
+Using Steve's method:
+
+```{r}
+p <- .9
+n <- 85
+
+alpha <- p*n
+beta <- n*(1-p)
+quantile(rbeta(1000, alpha, beta), c(.05,.95))
+
+alpha 
+beta 
+plot_beta(alpha,beta)
+
+
+
+
+```
+
+
+
+d. 
+It seems like is all or everything for Sal!
+
+```{r}
+
+plot_beta(.5,.4)
+```
+
+
+## Exercise 3.2.
+
+a. 
+We know that mean= 80%, and the interval is 70-90
+We also know that when a < b, it is skewed to the left 
+When a > b, it is skewed to the right
+When a = b, the distribution is symmetric 
+When a = b and use high numbers, the distribution is skinnier
+
+
+Based on that information we can approximate a Beta model:
+
+```{r}
+alfa(.8)
+## We know alfa is 4 times b, so
+quantile(rbeta(1000, 40, 10), c(.05,.95)) ## Fairly close
+mean(40,10)
+
+plot_beta(40,10)
+
+```
+
+ 
+b. 
+In this case, we can calculate the exact plot: 
+```{r}
+
+alfa(.9)
+
+## Alfa is 9 times Beta
+
+
+
+b <- seq(0,100,.01)
+a <- b*9
+p <-  vari(a,b)
+df <-  tibble(alfa=a, beta=b, p=p)
+
+df_2 <- df |> filter(p>.079 & p<.089)
+
+
+plot_beta(df_2$alfa,df_2$beta)
+summarize_beta(df_2$alfa,df_2$beta)
+```
+
+c. Using Steve's Method:
+```{r}
+p <- .85
+n <- 45
+
+alpha <- p*n
+beta <- n*(1-p)
+quantile(rbeta(1000, alpha, beta), c(.05,.95))
+
+plot_beta(alpha,beta)
+
+```
+
+
+d. Since he is not very sure, let us place the mode on .3 with a relatively high SD /
+
+```{r}
+## Mode ~ .3
+
+## I need the mode function for this
+
+moda <- function(alfa,beta) {
+  result <- (alfa-1)/(alfa+beta-2)
+  return(result)
+}
+
+moda(2,3.4)
+
+plot_beta(2,3.4)
+
+summarize_beta(2,3.4) 
+```
+
+## Exercise 3.3
+
+a.
+
+```{r}
+plot_beta(1,1) 
+```
+
+b. The mean is .5 because substituting the values of alpha and beta in (alfa/alfa+beta) equals .5. This makes sense because there is an a priori equal chance of being right or wrong. That is the frequentist philosophy.
+```{r}
+summarize_beta(1,1) 
+
+```
+c. The SD (shown above) is .28
+
+d. 
+```{r}
+
+plot_beta(10,10)  
+summarize_beta(10,10) 
+```
+
+
+```{r}
+
+plot_beta(.1,.10)  
+summarize_beta(.10,.10) 
+```
+
+
+## Exercise 3.4
+
+(Top left to right) 
+Beta (.5,.5), Beta(2,2), Beta (6,2)
+(Bottom, left to right)
+Beta (1,1), Beta (.5,6) Beta (6,6)
+
+Just to control my anxiety and be absolutely positive: 
+```{r}
+library(ggpubr)
+
+a <-plot_beta(.5,.5)
+b <- plot_beta(2,2)
+c <- plot_beta(6,2)
+d <-  plot_beta(1,1)
+e <- plot_beta(.5,6)
+f <- plot_beta(6,6)
+
+ggarrange(a,b,c,d,e,f, ncol=3,nrow=2)
+```
+
+
+
+## Exercise 3.5
+
+(Top left to right) 
+Beta (1,.3), Beta(3,3), Beta (4,2)
+(Bottom, left to right)
+Beta (2,1), Beta (5,6) Beta (6,3)
+
+
+```{r}
+a <-plot_beta(1,.3)
+b <- plot_beta(3,3)
+c <- plot_beta(4,2)
+d <-  plot_beta(2,1)
+e <- plot_beta(5,6)
+f <- plot_beta(6,3)
+
+ggarrange(a,b,c,d,e,f, ncol=3,nrow=2)
+```
+
+
+## Exercise 3.6
+
+a
+Sorry for the long code, but I don't see a cheaper way
+```{r}
+alphas <- c(.5,2,6,1,.5,6) 
+alist <- as.list(alphas)
+betas <- c(.5,2,2,1,6,6)
+blist <- as.list(betas)
+x <- seq(0,1,length.out=100)
+
+
+plot_list = list() 
+for (i in 1:6){
+    dfp <- tibble(x=x,y=dbeta(x,alist[[i]][1],blist[[i]][1]), m=mean(alist[[i]][1],blist[[i]][1]))
+    
+p <- dfp |> ggplot(aes(x,y)) + geom_line() + geom_vline(xintercept = dfp$m[1], linetype=2, color = "tomato", size=1)
+  
+      plot_list[[i]] <- p
+  }
+ 
+ggarrange(plot_list[[1]],
+          plot_list[[2]],
+          plot_list[[3]],
+          plot_list[[4]],
+          plot_list[[5]],
+          plot_list[[6]], ncol=3,nrow=2)
+
+
+
+
+```
+
+
+Means are in dashed red lines. The smallest mean appears to be the model in the bottom and the middle, which corresponds to Beta(.5,6). The highest is the one from the top right plot, corresponding to  Beta (6,2)
+
+
+b
+Sorry for the long code, but I don't see a cheaper way
+```{r}
+
+
+
+alphas <- c(.5,2,6,1,.5,6) 
+alist <- as.list(alphas)
+betas <- c(.5,2,2,1,6,6)
+blist <- as.list(betas)
+x <- seq(0,1,length.out=100)
+
+
+plot_list = list() 
+for (i in 1:6){
+    dfp <- tibble(x=x,y=dbeta(x,alist[[i]][1],blist[[i]][1]), m=moda(alist[[i]][1],blist[[i]][1]), prom=mean(alist[[i]][1],blist[[i]][1]))
+    
+p <- dfp |> ggplot(aes(x,y)) + geom_line() + geom_vline(xintercept = dfp$m[1], linetype=4, color = "black", size=1) + geom_vline(xintercept = dfp$prom[1], linetype=2, color = "tomato", size=1)
+  
+      plot_list[[i]] <- p
+  }
+ 
+ggarrange(plot_list[[1]],
+          plot_list[[2]],
+          plot_list[[3]],
+          plot_list[[4]],
+          plot_list[[5]],
+          plot_list[[6]], ncol=3,nrow=2)
+```
+
+Means are in dashed red lines and modes in black. The smallest mode appears to be the model in the bottom and the middle, which corresponds to Beta(.5,6). The highest is the one from the top right plot, corresponding to  Beta (6,2)
+
+
+c
+```{r}
+
+
+alphas <- c(.5,2,6,1,.5,6) 
+betas <- c(.5,2,2,1,6,6)
+x <- seq(0,1,length.out=100)
+dfp <- tibble(a=alphas,b=betas,sd=vari(a,b)^(1/2))
+
+dfp |> filter(sd==max(dfp$sd))
+
+```
+
+Beta(.5,.5) is the model with the largest SD
+
+```{r}
+dfp |> filter(sd==min(dfp$sd))
+
+```
+
+
+Beta(.5,6) is the model with the smallest SD
+
+## Exercise 3.7
+
+a. 
+```{r}
+a <-plot_beta(1,.3)
+b <- plot_beta(3,3)
+c <- plot_beta(4,2)
+d <-  plot_beta(2,1)
+e <- plot_beta(5,6)
+f <- plot_beta(6,3)
+
+ggarrange(a,b,c,d,e,f, ncol=3,nrow=2)
+```
+b.
+```{r}
+a <-summarize_beta(.5,.5)
+b <- summarize_beta(1,1)
+c <- summarize_beta(2,2)
+d <-  summarize_beta(6,6)
+e <- summarize_beta(6,2)
+f <- summarize_beta(.5,6)
+
+ob <- rbind(a,b,c,d,e,f) |> mutate(alphas=c(.5,1,2,6,6,.5), betas=c(.5,1,2,6,2,6))
+
+```
+Means
+
+```{r}
+
+ob|> filter(mean==max(ob$mean))
+ob|> filter (mean==min(ob$mean)) 
+```
+
+Modes
+```{r}
+ob_mode <- ob|> filter(ob$mode!=ob$mode[2]) ## Couldn't find another way to get rid of that NaN
+ob_mode|>  filter(mode==min(mode)) 
+ob_mode|>  filter(mode==max(mode)) 
+```
+
+SD
+```{r}
+ob|> filter(sd==max(ob$sd))
+ob|> filter (sd==min(ob$sd)) 
+
+```
+
+Results are the same as the one we obtained before.
+
+
+## Exercise 3.9
+
+a. Mean, mode, and SD of both salespeople
+
+```{r}
+summarize_beta(8,2) #N.Dakota
+summarize_beta(1,20) # Louisiana
+```
+
+b.
+```{r}
+
+x <- seq(0,1,length.out=100)
+
+ndakota <- tibble(x=x,y=dbeta(x, 8, 2)) 
+louis <- tibble(x=x,y=dbeta(x, 1, 20)) 
+
+ndplot <- ndakota |> ggplot(aes(x,y)) + geom_line() + theme_minimal()
+louisplot <- louis |> ggplot(aes(x,y)) + geom_line() + theme_minimal()
+
+ggarrange(
+  ndplot,
+  louisplot,
+  nrow=1,
+  ncol=2
+)
+
+```
+
+
+c.
+The salesman from ND thinks most people in the US use the term pop (mean around .8). In contrast, the salesman from Louisiana thinks less than 1% uses that term. Of course, that is influenced by their region of residence.
+
+## Exercise 3.10
+
+n=50, y=12 
+
+a. 
+```{r}
+# North Dakota
+
+
+## Prior model
+x <- seq(0,1,length.out=100) # all possible x values 
+prior_nd <-dbeta(x, 8, 2) # beta model
+
+## Likelihood function
+lh_nd <- dbinom(12,50,x) # binom model L(pi{0,1} | y=12) 
+
+## Posterior model
+posterior_nd <-dbeta(x, 8+12,2+50-12) # posterior model
+
+plot(x,posterior_nd)
+
+
+# Louisiana
+# Prior
+prior_louis <- dbeta(x, 1, 20) 
+#Lhood function (THE SAME as ND)
+
+## Posterior model
+posterior_louis <-dbeta(x, 1+12,20+50-12) # posterior model
+
+plot(x,posterior_louis)
+
+```
+
+
+b. 
+
+North Dakota:
+
+```{r}
+nd_models <-  tibble(x=x, prob=prior_nd, type=rep("prior",100)) |>  add_row(x=x, prob=posterior_nd, type=rep("posterior",100)) |> add_row(x=x, prob=lh_nd, type=rep("lhood",100)) 
+
+nd_models |> filter(type!="lhood") |> ggplot(aes(x,prob, col=type)) + geom_point() + theme_minimal()
+
+```
+
+The likelihood function:
+```{r}
+nd_models |> filter(type=="lhood") |> ggplot(aes(x,prob, col=type)) + geom_point(col="gray") + theme_minimal()
+```
+
+Louisiana
+
+```{r}
+louis_models <-  tibble(x=x, prob=prior_louis, type=rep("prior",100)) |>  add_row(x=x, prob=posterior_louis, type=rep("posterior",100)) |> add_row(x=x, prob=lh_nd, type=rep("lhood",100)) 
+
+louis_models |> filter(type!="lhood") |> ggplot(aes(x,prob, col=type)) + geom_point() + theme_minimal()
+
+```
+
+The likelihood function:
+
+```{r}
+louis_models |> filter(type=="lhood") |> ggplot(aes(x,prob, col=type)) + geom_point(col="gray") + theme_minimal()
+```
+
+
+
+c.
+The Louisiana salesman's prediction was closer to the pdf we obtained after our survey, so he might not be that surprised. On the other hand, the North Dakota salesman had a very different prediction (mean arouund 80%)! 
+
+## Exercise 3.11
+
+mean=1/4 mode=5/22 
+
+a. 
+```{r}
+1/alfa(1/4)
+
+# Alfa equals .33 times B, or B equals 3 times a (B=3a)
+a <- seq(1,100,1)
+b <- a*3
+
+modal <-  moda(a,b)
+media <- mean(a,b)
+df <-  tibble(alfa=a, beta=b, mode=modal, mean=media)
+
+df |> filter(mode>.22 & mode<=5/22)
+
+plot_beta(6,18)
+
+
+
+```
+
+
+b.
+```{r}
+
+bike <- dbeta(x, 6+15,18+50-15) # posterior model
+plot(x, bike) 
+
+
+plot_beta_binomial(6,18,15,50) 
+
+
+
+```
+
+
+c.
+```{r}
+post <- summarize_beta_binomial(6,18,15,50) 
+
+post |> filter(model=="posterior")
+
+
+
+```
+d.
+The posterior is skewed to the right with respect to the prior and it also reduces the variation observed in the prior (.05 vs .08). On the other hand, the posterior is closer to the observed data (likelihood). Thus, it seems like the observed data outweighed the prior.
+
+## Exercise 3.12
+
+a. Using Steve's method:
+```{r}
+
+p <- .15
+n <- 110
+
+alpha <- p*n
+beta <- n*(1-p)
+quantile(rbeta(1000, alpha, beta), c(.05,.95))
+
+plot_beta(alpha,beta)
+summarize_beta(alpha,beta)
+
+```
+
+b.
+```{r}
+x <- seq(0,1,length.out=100) # all possible x values 
+post <- dbeta(x,alpha+30,beta+90-30)
+
+plot(x,post)
+
+```
+
+c.
+```{r}
+post <- summarize_beta_binomial(alpha,beta,y = 30,90)  
+
+post |> filter(model=="posterior")
+
+
+```
+d.
+
+```{r}
+plot_beta_binomial(alpha,beta,30,90)
+
+```
+
+
+The posterior is skewed to the right of the upper limit of the prior,so it is relatively close. This means that the smaller SD of the prior "pulled" the posterior close to the prior. However, the observed data was also relatively important, so that is why the posterior is in the middle.
+
+
+## Exercise 3.13
+
+a.
+```{r}
+## we want  a mean of ~.475
+
+1/alfa(mean = .475)
+
+# beta = 1.1
+
+quantile(rbeta(1000, 29, 28), c(.05,.95)) ## Fairly close
+summarize_beta(29,28) 
+
+
+x <- seq(0,1,length.out=100) # all possible x values 
+plot(x,dbeta(x,29,28))
+
+
+
+
+```
+
+b.
+```{r}
+## we want  a mean of ~.475
+
+
+plot_beta(29+80,28+200-80)
+
+```
+
+
+c.
+```{r}
+summarize_beta_binomial(29,28,80,200)
+
+```
+
+d.
+```{r}
+plot_beta_binomial(29,28,y = 80,200)
+```
+
+Sylvia overestimated the percent of people who know someone who is transgender in her prior belief, and she also gave it a long range. After the survey, the updated prior reflects that a less proportion of people knew someone who is transgender, and that this percentage does not vary that much. In this case the data outweighed the prior.
+
+## Exercise 3.14 
+
+
+
+Write the corresponding input code for the summarize_beta_binomial() output below.
+
+My thought process was this: if the prior mean was 40% and the posterior mean 31%, then the proportion observed (y/n) must be lower than 31%, so I suspected something around 25%, say 1/4. 
+```{r}
+summarize_beta_binomial(2,3,1,4)
+```
+
+Posterior SD and alphas and betas are too small in contrast to these.  I suspected there should be a higher pair of numbers fitted to that proportion (~25%), so after several attempts I got to this which closely matches that of the book:
+
+```{r}
+summarize_beta_binomial(2,3,9,36)
+```
+
+
+## Exercise 3.15
+
+Since the posterior mean is very close to 1, the proportion in the likelihood model must have been close to 100%. The sd is small, so numbers must be high.
+```{r}
+summarize_beta_binomial(1,2,99,100)
+```
+
+
+## Exercise 3.16
+
+a.
+The prior was very confident that the probability of x thing was close to 1. However, new data challenged that, as shown in the pdf of the likelihood function. In the trial, the mean probability of success was close to .25, but with much more variability.
+
+b.
+The posterior model is closer to the prior, because it had less variation than the one in the observed data. Data pulled the posterior closer to the prior.
+
+c. 
+```{r}
+
+# We know prior's mean is 1, so
+alfa(.98) # alfa is ~49 times b
+
+plot_beta(55,1)
+
+# We know that the mean around the likelihood function is .25 and that the distrrbution is very spread, so we dont have a lot of data i.e., n=small
+
+plot_binomial_likelihood(1,4)
+
+plot_beta_binomial(55,1,7,28)
+
+```
+
+
+## Exercise 3.17
+
+a. 
+The prior distribution is very wide, so in contrast to the one in 3.16 there is much less certainty. In contrast also to the preivous exercise the observed data is more robus, as seen by the low SD of the likelihood function.
+
+b.
+The posterior model is closer to the data (as reflected by the likelihood function)! This is because the prior was too vague. The observed data outweighed the prior model.
+
+c.
+
+
+```{r}
+
+# We know prior's mean is .5, so
+alfa(.5) # alfa is ~1 times b, and we also have a wide variation so the relation between alfa and beta must be based on small numbers
+
+plot_beta(3,3)
+
+# We know that the mean around the likelihood function is .12 and that the distrrbution is not very spread, so we may have a lot of data i.e., n=medium-large
+
+plot_binomial_likelihood(3,37)
+
+plot_beta_binomial(3,3,3,37)
+
+```
+
+
+## Exercise 3.18
+
+a.
+
+```{r}
+summarize_beta_binomial(3,3,30,40)
+plot_beta_binomial(3,3,30,40)
+```
+
+
+b.
+```{r}
+
+summarize_beta_binomial(3,3,15,20)
+plot_beta_binomial(3,3,15,20)
+```
+
+
+c.
+Both models are similar in every sense. The only difference is that Patrick's likelihood function is closer to the posterior model than Harold's. The reason is that Patrick use a larger sample to update his prior (n=40). By using a smaller sample, Harold's posterior model is closer to his prior. 
+
+
+
