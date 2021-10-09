@@ -1,0 +1,1046 @@
+---
+title: "Set 4 of Exercises"
+author: "Braulio Güémez"
+date: "4/10/2021"
+output: html_document
+---
+
+
+# Exercises for Chapter 4 - Bayes Rules!
+
+
+```{r}
+library(bayesrules)
+library(tidyverse)
+library(janitor)
+library(ggthemes)
+library(ggplot2)
+library(ggpubr)
+
+```
+
+
+## 4.1.
+
+a. Since a = b, then pi =.5
+b. Since a > b, then pi would be somewhat > .5
+c. Since a < b by a lot, then pi would be strongly favoring < .5  
+d. Since a < b by not much, then then pi would be somewhat favoring < .5
+e. Since a > b by a lot, then pi would be strongly favoring > .5
+
+## 4.2
+
+The prior is skewed to the left, so a must be LESS than B. 
+The likelihood function is centered at pi = .50 so 
+
+the only function that satisfies those two is Option e: 
+
+```{r}
+plot_beta_binomial(3,8,2,4)
+```
+
+## 4.3
+
+a. Pi must be close to zero
+```{r}
+plot_beta(1,4)
+```
+
+
+
+b. Anything can be possible 
+```{r}
+plot_beta(1,1)
+```
+
+c. Pi must be close to 1
+```{r}
+plot_beta(4,1)
+```
+d. Pi must be more than .50 but less than Katie's prior
+
+```{r}
+plot_beta(8,6)
+```
+
+e. Pi must be less than .50 but not as much as Ben's prior
+
+```{r}
+plot_beta(3,10)
+```
+
+## 4.4
+
+Kimya thinks that chances are low but she is unsure
+Fernando thinks that the shop is most likely to be closed.
+Clara thinks that the chances are low but she is not as sure as Fernando 
+Taylor thinks that the shop will definitely be open.
+
+## 4.5. 
+
+Kimya
+
+```{r}
+
+set.seed(84735)
+
+# #Prior
+
+kim_sim <- data.frame(pi = rbeta(10000, 1, 2)) %>% ## This is the prior
+  mutate(y = rbinom(10000, size = 7, prob = pi)) ## This is the potential number of opened days according to the prior 
+
+## Posterior 
+
+# Keep only the simulated pairs that match our data
+kim_sim_p <- kim_sim %>% 
+  filter(y == 3)
+
+# Plot the remaining pi values
+kim_p <-  ggplot(kim_sim_p, aes(x = pi)) + 
+  geom_histogram() + geom_vline(xintercept = mean(kim_sim_p$pi))   
+
+kim_p
+
+## Approximate posterior
+
+mean(kim_sim_p$pi)
+
+```
+
+
+Fernando
+
+```{r}
+
+set.seed(84735)
+
+# #Prior
+
+fer_sim <- data.frame(pi = rbeta(10000, .5, 1)) %>% ## This is the prior
+  mutate(y = rbinom(10000, size = 7, prob = pi)) ## This is the potential number of opened days according to the prior 
+
+## Posterior 
+
+# Keep only the simulated pairs that match our data: 3 days
+fer_sim_p <- fer_sim %>% 
+  filter(y == 3)
+
+# Plot the remaining pi values
+fer_p <-  ggplot(fer_sim_p, aes(x = pi)) + 
+  geom_histogram() + geom_vline(xintercept = mean(fer_sim_p$pi))   
+
+fer_p
+## Approximate posterior
+
+mean(fer_sim_p$pi)
+
+```
+
+Ciara
+
+```{r}
+
+set.seed(84735)
+
+# #Prior
+
+ci_sim <- data.frame(pi = rbeta(10000, 3, 10)) %>% ## This is the prior
+  mutate(y = rbinom(10000, size = 7, prob = pi)) ## This is the potential number of opened days according to the prior 
+
+## Posterior 
+
+# Keep only the simulated pairs that match our data: 3 days
+ci_sim_p <- ci_sim %>% 
+  filter(y == 3)
+
+# Plot the remaining pi values
+ci_p <- ggplot(ci_sim_p, aes(x = pi)) + 
+  geom_histogram() + geom_vline(xintercept = mean(ci_sim_p$pi))   
+ci_p
+
+## Approximate posterior
+
+mean(ci_sim_p$pi)
+
+```
+
+Taylor
+
+```{r}
+
+set.seed(84735)
+
+# #Prior
+
+ty_sim <- data.frame(pi = rbeta(10000, 2, .1)) %>% ## This is the prior
+  mutate(y = rbinom(10000, size = 7, prob = pi)) ## This is the potential number of opened days according to the prior 
+
+## Posterior 
+
+# Keep only the simulated pairs that match our data: 3 days
+ty_sim_p <- ty_sim %>% 
+  filter(y == 3)
+
+# Plot the remaining pi values
+ty_p <- ggplot(ty_sim_p, aes(x = pi)) + 
+  geom_histogram() + geom_vline(xintercept = mean(ty_sim_p$pi))   
+
+ty_p 
+## Approximate posterior
+
+mean(ty_sim_p$pi)
+
+```
+
+## 4.6
+
+Kim
+```{r}
+x <- seq(0,1,length.out=1000) # all possible x values 
+posterior_kim <-tibble(x=x, y=dbeta(x, 1+3,2+7-3)) # posterior model
+kim_pr <- ggplot(data=posterior_kim, aes(x,y)) + geom_point()
+
+ggarrange(kim_p, kim_pr, ncol = 1, nrow = 2)
+
+## Compare means
+tibble(real_mean=mean(posterior_kim$x*posterior_kim$y), simulated_mean=mean(kim_sim_p$pi))  
+
+
+```
+
+
+
+Fernando
+```{r}
+x <- seq(0,1,length.out=1000) # all possible x values 
+posterior_fer <-tibble(x=x, y=dbeta(x, .5+3,1+7-3)) # posterior model
+fer_pr <- ggplot(data=posterior_fer, aes(x,y)) + geom_point()
+
+ggarrange(fer_p, fer_pr, ncol = 1, nrow = 2)
+
+## Compare means
+tibble(real_mean=mean(posterior_fer$x*posterior_fer$y), simulated_mean=mean(fer_sim_p$pi))  
+
+```
+
+Ciara 
+
+```{r}
+x <- seq(0,1,length.out=1000) # all possible x values 
+posterior_ci <-tibble(x=x, y=dbeta(x, 3+3,10+7-3)) # posterior model
+ci_pr <- ggplot(data=posterior_ci, aes(x,y)) + geom_point()
+
+ggarrange(ci_p, ci_pr, ncol = 1, nrow = 2)
+
+## Compare means
+tibble(real_mean=mean(posterior_ci$x*posterior_ci$y), simulated_mean=mean(ci_sim_p$pi))  
+
+
+```
+
+
+
+Taylor
+
+```{r}
+x <- seq(0,1,length.out=1000) # all possible x values 
+posterior_ty <-tibble(x=x, y=dbeta(x, 2+3,.1+7-3)) # posterior model
+ty_pr <- ggplot(data=posterior_ty, aes(x,y)) + geom_point()
+
+ggarrange(ty_p, ty_pr, ncol = 1, nrow = 2)
+
+## Compare means
+tibble(real_mean=mean(posterior_ty$x*posterior_ty$y), simulated_mean=mean(ty_sim_p$pi))  
+
+
+```
+
+Simulations and real posterior look very similar!
+
+## 4.7
+
+My thought process follows two steps: 
+1) Estimate the skewness of the beta distribution based on the relationship between alpha and beta.
+2) Consider the proportion of the trial and the n size to estimate the likelihood function. 
+3) Ponder where the posterior model would be according to the shape of both distributions
+
+a. The data has more influence on the posterior
+b. The prior has more influence on the posterior
+c. The posterior is an equal compromise between the data and the prior
+d. The posterior is an equal compromise between the data and the prior
+e. The data has more influence on the posterior
+
+## 4.8
+
+a.
+```{r}
+plot_beta_binomial(1,4,8,10)
+```
+
+
+b.
+```{r}
+plot_beta_binomial(20,3,0,1)
+```
+c.
+```{r}
+plot_beta_binomial(4,2,1,3)
+```
+d.
+```{r}
+plot_beta_binomial(3,10,10,13)
+```
+
+e.
+```{r}
+plot_beta_binomial(20,2,10,200)
+```
+
+## 4.9 
+
+a.
+90 % of values are Between .5 and .95. The mean is .88
+```{r}
+plot_beta(7,2)
+quantile(rbeta(1000, 7, 2), c(.05,.95))
+mean(rbeta(1000, 7, 2))
+
+```
+
+
+b. 
+The mean remains similar, but the survey significantly improves our confidence. 90% of values are between .8 and 
+```{r}
+plot_beta_binomial(7,2,19,20)
+quantile(rbeta(1000, 7+19, 2+20-19), c(.05,.95))
+mean(rbeta(1000, 7+19, 2+20-19))
+
+```
+
+
+c. 
+The new data would make me reconsider my prior in a meaningful way. The posterior model mean is now .27 in contrast to my initial .8 mean. However, the level of uncertainty is relatively high: 90% of values range from .15 to .42
+```{r}
+plot_beta_binomial(7,2,1,20)
+quantile(rbeta(1000, 7+1, 2+20-1), c(.05,.95))
+mean(rbeta(1000, 7+1, 2+20-1))
+
+```
+
+d. 
+The new data has a considerable n size, so that would make me reconsider my prior and push it to the left. The posterior model mean is now .58 in contrast to my initial .8 mean. 
+```{r}
+plot_beta_binomial(7,2,10,20)
+quantile(rbeta(1000, 7+10, 2+20-10), c(.05,.95))
+mean(rbeta(1000, 7+10, 2+20-10))
+
+```
+
+## 4.10
+
+We can solve for y and n in the posterior model equation to solve this problems. I will first see the intuition behind it and then compute the numbers.
+
+
+```{r}
+
+y_func <- function(poalfa,palfa) {
+  result <- poalfa-palfa
+  return(result)
+}
+
+n_func <- function(pobeta,pbeta,y) {
+  result <- pobeta+y-pbeta
+  return(result)
+}
+
+```
+
+
+a. We need data that pushes the distribution to the right
+```{r}
+pr_alfa <- .5
+pr_beta <- .5
+pos_alfa <- 8.5
+pos_beta <- 2.5
+y <- y_func(pos_alfa,pr_alfa)
+n <- n_func(pos_beta,pr_beta,y)
+
+y
+n
+
+  plot_beta_binomial(pr_alfa,pr_beta,y,n) 
+```
+
+
+
+b. We need data that pushes the distribution to the left
+```{r}
+pr_alfa <- .5
+pr_beta <- .5
+pos_alfa <- 3.5
+pos_beta <- 10.5
+y <- y_func(pos_alfa,pr_alfa)
+n <- n_func(pos_beta,pr_beta,y)
+
+y
+n
+
+  plot_beta_binomial(pr_alfa,pr_beta,y,n) 
+```
+
+
+b. We need data that pushes the posterior distribution to the center. That would require a likelihood function skewed to the left.
+```{r}
+pr_alfa <- 10
+pr_beta <- 1
+pos_alfa <- 12
+pos_beta <- 15
+y <- y_func(pos_alfa,pr_alfa)
+n <- n_func(pos_beta,pr_beta,y)
+
+y
+n
+
+  plot_beta_binomial(pr_alfa,pr_beta,y,n) 
+```
+
+d. Both the prior and the posterior seem to be skewed to the right due to their large alfas. Thus, we need some data in between. 
+```{r}
+pr_alfa <- 8
+pr_beta <- 3
+pos_alfa <- 15
+pos_beta <- 6
+y <- y_func(pos_alfa,pr_alfa)
+n <- n_func(pos_beta,pr_beta,y)
+
+y
+n
+
+  plot_beta_binomial(pr_alfa,pr_beta,y,n) 
+```
+
+
+
+
+e. Both the prior and the posterior seem to be have the same mean, so the data should be also close to that mean
+```{r}
+pr_alfa <- 2
+pr_beta <- 2
+pos_alfa <- 5
+pos_beta <- 5
+y <- y_func(pos_alfa,pr_alfa)
+n <- n_func(pos_beta,pr_beta,y)
+
+y
+n
+
+  plot_beta_binomial(pr_alfa,pr_beta,y,n) 
+```
+
+
+f. Since the prior follows a uniform distribution, our data can be inferred just based on the posterior, which is very skewed to the right. That means y is very close to n!
+```{r}
+pr_alfa <- 1
+pr_beta <- 1
+pos_alfa <- 30
+pos_beta <- 3
+y <- y_func(pos_alfa,pr_alfa)
+n <- n_func(pos_beta,pr_beta,y)
+
+y
+n
+
+  plot_beta_binomial(pr_alfa,pr_beta,y,n) 
+```
+
+## 4.11
+
+a.
+```{r}
+## Set alpha and beta for Beta (1,1)
+pr_alfa <- 1
+pr_beta <- 1
+## Set trials data
+y <- 10
+n <- 13
+
+x <- seq(0,1,length.out=100)
+
+a_plot <- tibble(x=x, post=dbeta(x, pr_alfa+y,pr_beta+n-y)) |> ggplot(aes(x,post)) + geom_point() + theme_minimal()
+
+a_plot
+
+plot_beta_binomial(pr_alfa,pr_beta,y,n) 
+
+
+```
+
+
+b.
+```{r}
+
+## Set alpha and beta for Beta (1,1)
+pr_alfa <- 1
+pr_beta <- 1
+## Set trials data
+y <- 0
+n <- 1
+
+x <- seq(0,1,length.out=100)
+
+b_plot <- tibble(x=x, post=dbeta(x, pr_alfa+y,pr_beta+n-y)) |> ggplot(aes(x,post)) + geom_point() + theme_minimal()
+
+b_plot
+
+plot_beta_binomial(pr_alfa,pr_beta,y,n) 
+
+```
+
+
+c.
+```{r}
+
+## Set alpha and beta for Beta (1,1)
+pr_alfa <- 1
+pr_beta <- 1
+## Set trials data
+y <- 100
+n <- 130
+
+x <- seq(0,1,length.out=100)
+
+c_plot <- tibble(x=x, post=dbeta(x, pr_alfa+y,pr_beta+n-y)) |> ggplot(aes(x,post)) + geom_point() + theme_minimal()
+
+c_plot
+
+plot_beta_binomial(pr_alfa,pr_beta,y,n) 
+
+```
+
+
+
+d.
+```{r}
+
+## Set alpha and beta for Beta (1,1)
+pr_alfa <- 1
+pr_beta <- 1
+## Set trials data
+y <- 20
+n <- 120
+
+x <- seq(0,1,length.out=100)
+
+d_plot <- tibble(x=x, post=dbeta(x, pr_alfa+y,pr_beta+n-y)) |> ggplot(aes(x,post)) + geom_point() + theme_minimal()
+
+d_plot
+
+plot_beta_binomial(pr_alfa,pr_beta,y,n) 
+
+```
+
+
+
+e.
+```{r}
+
+## Set alpha and beta for Beta (1,1)
+pr_alfa <- 1
+pr_beta <- 1
+## Set trials data
+y <- 234
+n <- 468
+
+x <- seq(0,1,length.out=100)
+
+e_plot <- tibble(x=x, post=dbeta(x, pr_alfa+y,pr_beta+n-y)) |> ggplot(aes(x,post)) + geom_point() + theme_minimal()
+
+e_plot
+
+plot_beta_binomial(pr_alfa,pr_beta,y,n) 
+
+```
+
+Basically, with more data we have slimmer distributions.
+
+```{r}
+ggarrange(a_plot, b_plot, c_plot, d_plot, e_plot, ncol=3, nrow=2)
+```
+
+## 4.12
+
+Posteriors with this beta look rather similar than the uniform modeel with the exception of plot b that has a very tiny n. In this model, the posterior is very similar to the prior. Thus, in contrast to the prior in 4.11, this prior is more informative.
+
+```{r}
+
+## Set alpha and beta for Beta (10,2)
+pr_alfa <- 10
+pr_beta <- 2
+x <- seq(0,1,length.out=100)
+
+y_list <- as.list(c(10,0,100,20,234))
+n_list <- as.list(c(13,1,130,120,468))
+
+
+plot_list = list() 
+for (i in 1:5){
+    dfp <- tibble(x=x,y=dbeta(x, pr_alfa+y_list[[i]][1], pr_beta+n_list[[i]][1]-y_list[[i]][1])) 
+                              
+p <- dfp |> ggplot(aes(x,y)) + geom_point() + theme_minimal()
+  
+      plot_list[[i]] <- p
+  }
+ 
+ggarrange(plot_list[[1]],
+          plot_list[[2]],
+          plot_list[[3]],
+          plot_list[[4]],
+          plot_list[[5]],
+          ncol=3,nrow=2)
+```
+
+
+
+## 4.13
+
+
+a.
+```{r}
+x1 <- seq(0,.5,length.out=50)
+x2 <- seq(.5,1,length.out=50)
+y_2 <- rep(2,50)
+y_0 <- rep(0,50)
+
+stub <- tibble(x=x1, y=y_0) |> add_row(x=x2,y=y_2)
+
+
+stub |> ggplot(aes(x,y))  + geom_point()
+```
+
+b.
+The politician thinks that the probability that his approval rating is 0 is between 0 and less than 50%. He also thinks that the probability of having an approval rating od 2 is between 50% and les than 100%.
+
+c.
+
+```{r}
+## f(pi|y=0) approximates f(pi) L(pi|y=0)
+
+tibble(x=x1,y=rep(0,50)) |> add_row(x=x2, y=2*(choose(100,0))*x2^0*(1-x2)^(100)) |> ggplot(aes(x,y)) + geom_point() 
+
+
+```
+
+
+## 4.15
+
+a.
+
+```{r}
+x <- seq(0,1,length.out=100)
+
+y <- 1
+n <- 1 
+
+
+prior <- tibble(x=x,y=dbeta(x,2,3), model=rep("prior",100)) 
+
+models <- prior |> add_row(x=x, y=dbeta(x,2+y,3+n-y), model=rep("post1",100))  
+
+
+models |> ggplot(aes(x,y,col=model)) + geom_point() + theme_minimal() +  scale_color_discrete()
+
+```
+b.
+```{r}
+up_a <- 2 + y
+up_b <- 3+n-y
+
+y <- 1
+n <- 1 
+
+
+models <- models |> add_row(x=x, y=dbeta(x,up_a+y,up_b+n-y), model=rep("post2",100))  
+
+
+models |> filter(model=="post1" | model=="post2") |> ggplot(aes(x,y,col=model)) + geom_point() + theme_minimal() +  scale_color_discrete()
+```
+
+
+c.
+```{r}
+up_a <- up_a + y
+up_b <- up_b+n-y
+
+y <- 0
+n <- 1 
+
+
+models <- models |> add_row(x=x, y=dbeta(x,up_a+y,up_b+n-y), model=rep("post3",100))  
+
+
+models |> filter(model=="post3" | model=="post2") |> ggplot(aes(x,y,col=model)) + geom_point() + theme_minimal() +  scale_color_discrete()
+```
+
+
+
+
+d.
+```{r}
+up_a <- up_a + y
+up_b <- up_b+n-y
+
+y <- 1
+n <- 1 
+
+
+models <- models |> add_row(x=x, y=dbeta(x,up_a+y,up_b+n-y), model=rep("post4",100))  
+
+
+models |> filter(model=="post3" | model=="post4") |> ggplot(aes(x,y,col=model)) + geom_point() + theme_minimal() +  scale_color_discrete()
+```
+This plot illustrates how the posteriors updated with each piece of new information.
+
+```{r}
+models |> ggplot(aes(x,y,color=model)) + geom_point() + theme_minimal()
+```
+
+
+
+
+## 4.16
+
+
+a.
+
+```{r}
+x <- seq(0,1,length.out=100)
+
+y <- 3
+n <- 5 
+
+
+prior <- tibble(x=x,y=dbeta(x,2,3), model=rep("prior",100)) 
+
+models2 <- prior |> add_row(x=x, y=dbeta(x,2+y,3+n-y), model=rep("post1",100))  
+
+
+models2 |> ggplot(aes(x,y,col=model)) + geom_point() + theme_minimal() +  scale_color_discrete()
+
+```
+
+
+
+
+
+b.
+```{r}
+up_a <- 2 + y
+up_b <- 3+n-y
+
+y <- 1
+n <- 5 
+
+
+models2 <- models2 |> add_row(x=x, y=dbeta(x,up_a+y,up_b+n-y), model=rep("post2",100))  
+
+
+models2 |> filter(model=="post1" | model=="post2") |> ggplot(aes(x,y,col=model)) + geom_point() + theme_minimal() +  scale_color_discrete()
+```
+
+
+
+
+c.
+
+```{r}
+up_a <- up_a + y
+up_b <- up_b+n-y
+
+y <- 1
+n <- 5 
+
+
+models2 <- models2 |> add_row(x=x, y=dbeta(x,up_a+y,up_b+n-y), model=rep("post3",100))  
+
+
+models2 |> filter(model=="post3" | model=="post2") |> ggplot(aes(x,y,col=model)) + geom_point() + theme_minimal() +  scale_color_discrete()
+```
+
+
+
+d.
+
+```{r}
+up_a <- up_a + y
+up_b <- up_b+n-y
+
+y <- 2
+n <- 5 
+
+
+models2 <- models2 |> add_row(x=x, y=dbeta(x,up_a+y,up_b+n-y), model=rep("post4",100))  
+
+
+models2 |> filter(model=="post3" | model=="post4") |> ggplot(aes(x,y,col=model)) + geom_point() + theme_minimal() +  scale_color_discrete()
+```
+
+This plot illustrates how the posteriors updated with each piece of new information.
+
+
+```{r}
+models2 |> ggplot(aes(x,y,col=model)) + geom_point() + theme_minimal()
+```
+
+
+## 4.17
+
+a.
+
+The probability that a user will click on the new ad when shown is slightly above the 50% chance. However, there is a relatively high level of uncertainty: plausible values range from .35 to .75
+
+```{r}
+plot_beta(4,3) + theme_minimal()
+```
+
+b. Here, 0 is the prior that all the three employees share.  As we can see, employee 3 has the most different posterior because he/she collected more data, in contrast to his coworkers. More powerful data leads to more defined posteriors.
+
+```{r}
+x <- seq(0,1,length.out=100)
+
+y <- as.list(c(0,3,20))
+n <- as.list(c(1,10,100)) 
+
+
+models3 <- tibble(x=x,y=dbeta(x,4,3), model=rep(0,100)) 
+
+for(i in 1:3){
+  
+  models3 <- models3 |> add_row(x=x, y=dbeta(x,4+y[[i]][1],3+n[[i]][1]-y[[i]][1]),
+                                model=rep(i,100))  
+}
+
+models3 |>  ggplot(aes(x,y,col=as.factor(model))) + geom_point() + theme_minimal()
+
+
+```
+
+c.
+
+```{r}
+x <- seq(0,1,length.out=100)
+
+y <- as.list(c(0,3,20))
+n <- as.list(c(1,10,100)) 
+
+
+models3 <- tibble(x=x,y=dbeta(x,4,3), model=rep(0,100)) 
+
+
+plot_list = list() 
+for(i in 1:3){
+  
+  p <- plot_beta_binomial(4,3,y[[i]][1],n[[i]][1])
+   plot_list[[i]] <- p
+    }
+
+ggarrange(plot_list[[1]],
+          plot_list[[2]],
+          plot_list[[3]],
+          ncol=1, nrow=3)
+
+```
+
+d. The posterior model of worker 1 has a higher standard deviation than the one from worker 3. The reason is that worker three tested the hypothesis with more people, so he diminished the uncertainty of his final posterior.
+
+```{r}
+
+a <- 4
+b <- 3
+y <- as.list(c(0,3,20))
+n <- as.list(c(1,10,100)) 
+
+all_posteriors = tibble(mean=as.numeric(), mode=as.numeric(), var=as.numeric(), sd=as.numeric(), worker=as.numeric()) 
+
+for(i in 1:3){
+    all_posteriors <- all_posteriors |>  add_row(summarize_beta(a+y[[i]][1],b+n[[i]][1]-y[[i]][1]), worker=i) 
+}
+
+all_posteriors
+
+
+```
+
+
+
+## 4.18
+
+a. I'll use the same coding strategy I used above.
+
+First, I use the initial Beta (4,3) as prior, and the first trial as the observed data.
+
+```{r}
+a <- 4
+b <- 3
+
+x <- seq(0,1,length.out=100)
+
+y <- 0
+n <- 1 
+
+
+prior <- tibble(x=x,y=dbeta(x,a,b), model=rep("prior",100)) 
+
+seq_emplo <- prior |> add_row(x=x, y=dbeta(x,a+y,b+n-y), model=rep("post1",100))  
+
+seq_emplo |> ggplot(aes(x,y,col=model)) + geom_point() + theme_minimal() +  scale_color_discrete()
+
+
+
+```
+
+
+Now we have a new prior, which is post1 in the plot above. Using the new observation, we can update this prior as follows:
+
+```{r}
+up_a <- a + y
+up_b <- b+n-y
+
+y <- 3
+n <- 10 
+
+
+seq_emplo <- seq_emplo  |> add_row(x=x, y=dbeta(x,up_a+y,up_b+n-y), model=rep("post2",100))  
+
+
+seq_emplo  |> filter(model=="post1" | model=="post2") |> ggplot(aes(x,y,col=model)) + geom_point() + theme_minimal() +  scale_color_discrete()
+```
+
+Updated posterior on day 3:
+
+
+```{r}
+up_a <- up_a + y
+up_b <- up_b+n-y
+
+y <- 20
+n <- 100
+
+
+seq_emplo <- seq_emplo  |> add_row(x=x, y=dbeta(x,up_a+y,up_b+n-y), model=rep("post3",100))  
+
+
+seq_emplo  |> filter(model=="post3" | model=="post2") |> ggplot(aes(x,y,col=model)) + geom_point() + theme_minimal() +  scale_color_discrete()
+```
+
+
+
+b. We can see that the understanding of the new employee about pi slowly moves to the left in the first two days. With the new data in day 3, however, the posterior significantly shifts even more to the left with high levels of certainty.
+
+
+```{r}
+
+seq_emplo |> ggplot(aes(x,y,col=model)) + geom_point() + theme_minimal()
+
+
+```
+
+
+c. I will sum the y's and n's from each day for this exercise. 
+
+```{r}
+ns <- sum(c(1,10,100))
+ys <- sum(c(0,3,20)) 
+
+plot_beta(4+ys,3+ns-ys) + theme_minimal()
+
+```
+
+In line with the argument about how the order doesn't matter for the final posterior, we observe that this plot looks exactly the same as the plot of the sequentially-obtained posterior.
+
+
+
+
+## 4.19
+
+```{r}
+data(bechdel, package = "bayesrules")
+
+
+```
+
+
+a.
+
+```{r}
+a <- 1
+b <- 1
+
+bechdel |> filter(year==1980) |> group_by(binary) |> summarize(prop_pass=n())
+
+plot_beta(a+4,b-4+14)
+
+summarize_beta(a+4,b-4+14)
+
+```
+
+
+
+b. The new prior is the posterior from a)
+
+```{r}
+a <- a+4
+b <- b+14-4
+
+p1990 <-  bechdel |> filter(year==1990) |> group_by(binary) |> summarize(prop_pass=n())
+
+y <- p1990$prop_pass[p1990$binary=="PASS"]
+n <- sum(p1990$prop_pass)
+
+
+plot_beta(a+y,b+n-y)
+
+summarize_beta(a+y,b+n-y)
+```
+
+c. Same
+
+```{r}
+# Prior
+
+a <- a+y
+b <- b+n-y
+
+# New information
+pyear <-  bechdel |> filter(year==2000) |> group_by(binary) |> summarize(prop_pass=n())
+y <- pyear$prop_pass[pyear$binary=="PASS"]
+n <- sum(pyear$prop_pass)
+
+# New posterior
+plot_beta(a+y,b+n-y)
+
+summarize_beta(a+y,b+n-y)
+``` 
+
+
+d. Jenna's posterior is the same as John's last posterior. This is yet another prove that order doesn't matter.
+```{r}
+a <- 1
+b <- 1
+
+pyear <- bechdel |> filter(year==1980 | year==1990 | year==2000) |> group_by(binary) |> summarize(prop_pass=n())
+y <- pyear$prop_pass[pyear$binary=="PASS"]
+n <- sum(pyear$prop_pass)
+
+# New posterior
+plot_beta(a+y,b+n-y)
+summarize_beta(a+y,b+n-y)
+
+
+
+```
+
+
+## 4.20 
+
+A frequentist approach would model reality according to the data obtained a certain moment in time, disregarding the data previously collected on the matter. However, sometimes they are similar in that sometimes A Bayesian model might include a "frequentist" prior which is the uniform beta model: beta(1,1). In this case, frequentist and bayesian analysis would look the same. 
+
