@@ -1,0 +1,616 @@
+---
+title: "Ch. 8 Exercises"
+author: "Braulio Güémez"
+date: "19/10/2021"
+output: html_document
+---
+
+```{r}
+# Load packages
+library(bayesrules)
+library(tidyverse)
+library(rstan)
+library(bayesplot)
+library(broom.mixed)
+library(janitor)
+```
+
+
+
+# Chapter 8 Exercises
+
+## 8.1
+
+1. Posterior estimation, which involves a range of plausible values of pi given the data we observed 
+
+2. Posterior hypothesis testing 
+
+3. Posterior prediction, which implies building a predictive model for a new data point considering the sample and posterior variability.
+
+## 8.2 
+
+a.
+It doesn't inform you about the degree of uncertainty of the estimation, which can significantly affect how we interpret its robustness. 
+
+b.
+There's a 95% probability that lambda is somewhere between 1 and 3.4.
+
+## 8.3
+
+a. It could be addressed using a hypothesis test. More specifically, a one-tail test where the Ha is more than .4
+
+b. There is no concrete value to test, so this can't be addressed using a hypothesis test. 
+
+c. As with a, this can be assessed with a one-tail test.
+
+d. Sarah's hypothesis can be assessed with a two-tail test, where one can see if 3 falls in the most likely interval.
+
+## 8.4. 
+
+a. The posterior odds expresses the updated understanding of pi, when we observe the data. Is is there relation between our alternative hypothesis and the null hypothesis. 
+
+b. The prior odds is also the relation between our alternative hypothesis and the null hypothesis but considering only the data plugged in from our prior model. 
+
+c. The Bayes Factor is the relationship between a) and b). It gives us insight about how our posterior evolved. The higher the Bayes factor, the more we modified our posterior distribution based on the data we observed. A higher number, thus provides more evidence in favor of the alternative hypothesis.
+
+## 8.5 
+
+Sampling variability: it models the likelihoods of each of the values of the sampling size. 
+
+Posterior variability: since it plots the whole distribution we have an approximation of its variability, and not only th mean.
+
+## 8.6
+
+a. 
+95% of the values in this Beta distribution are between .15 and .75
+```{r}
+qbeta(c(0.025, 0.975), 4, 5)
+```
+b.
+60% of the values in this Beta distribution are between .3 and .6
+```{r}
+qbeta(c(0.2,.8), 4, 5)
+```
+
+c.
+95% of the values in this Gamma distribution are between .003 and .4611
+
+```{r}
+qgamma(c(0.025, 0.975), 1,8)
+```
+
+## 8.7
+
+a.
+99% of this Gamma distribution is between 0 and .7
+```{r}
+qgamma(c(0.005, 0.995), 1,8)
+```
+
+b.
+95% of values in this normal distribution goes from 6 to 14
+
+```{r}
+qnorm(c(0.025, 0.975), 10,2)
+```
+
+c.
+80% of values in this normal distribution goes from -4 to 1.7
+
+```{r}
+qnorm(c(0.1, 0.9), -3,1)
+```
+
+## 8.8 
+
+a.
+```{r}
+plot_gamma(1,5) 
+
+qgamma(c(0, 0.95), 1,5)
+
+```
+
+
+
+
+b.
+```{r}
+plot_gamma(1,5) 
+
+qgamma(c(.025, 0.975), 1,5)
+
+```
+
+c. 
+The intervals are different and the highest posterior density is more appropriate because most values are concentrated in the left part of the distribution. It doesn't make sense to exclude a part of this side of the distribution.
+
+d. 
+```{r}
+plot_normal(-13,2)
+
+qnorm(c(0.5, 0.95), -13,2)
+
+
+```
+
+e.
+
+```{r}
+qnorm(c(0.5, 0.95), -13,2)
+```
+
+
+
+f.
+The intervals are the same. Since the distrbution is symmetric, it makes sense to cut the extreme values in both tails, like the "middle approach" suggests.
+
+## 8.9
+
+a.
+
+Since we want the acumulated probability from left to right, we take the complement of the alternative hypothesis.
+```{r}
+1-pbeta(.4, 4,3)
+
+```
+
+b.
+```{r}
+post_odds <- (1-pbeta(.4, 4,3))/pbeta(.4, 4,3)
+post_odds 
+
+plot_beta(4,3)
+
+```
+Given these posterior odds, we can say that pi is nearly 5 times more likely to be higher than .4 than below .4
+
+c.
+
+```{r}
+prior_odds <- (1-pbeta(.4,1,.8))/pbeta(.4,1,.8)
+prior_odds 
+
+plot_beta(1,.8)
+
+```
+
+The prior odds are lower, indicating that before taking our data into account we thought that pi was going to be approximately 2 times more likely to be higher than .4 than below .4
+
+d.
+```{r}
+post_odds/prior_odds 
+
+```
+Consistent with the previous exercises, our Bayes Factor indicates that upon observing our data, the plausibility of the alternative hypothesis increased in our posterior model, in contrast with what we had thought in the prior.
+
+e.
+
+We can conclude that although the prior already provided evidence in favor of the alternative hypothesis, the new data further enhanced it. This means that our prior probability was updated with new data and provided more empirical evidence for the alternative hypothesis.
+
+
+## 8.10
+
+
+a.
+
+
+```{r}
+pnorm(5.2,5,3)
+
+plot_normal(5,3) + geom_vline(xintercept=5.2, col="tomato")
+```
+
+b.
+
+```{r}
+post_odds <- pnorm(5.2,5,3)/(1-pnorm(5.2,5,3)) 
+
+post_odds
+
+```
+
+The posterior odss indicate that is is amost equally likely that the mu is higher or lower than than 5.2
+
+
+c.
+```{r}
+prior_odds <- pnorm(5.2,10,10)/(1-pnorm(5.2,10,10)) 
+
+prior_odds
+
+```
+
+The prior odds indicate that the posterior probability of having a mu value less than 5.2 is .46times as likely as having a mu value that is higher than 5.2. In other words, is less likely. As we can see from the plot there is more mass from the red line to the right than the other way around.
+
+
+d.
+```{r}
+post_odds/prior_odds
+
+```
+
+The Bayes Factor is .56. Upon observing the data, the posterior odds of the alternative hypothesis is .56times the prior odds. Thus, with the new data our posterior model separated from the alteernative hypothesis. 
+
+e.
+
+In this case, the data did not support evidence for our alternative hypothesis, that is why the ratio of the posterior to the prior odds is less than 1. 
+
+
+## 8.14
+
+a. Since we are looking at proportions that can go from 0 to 1, and not counts or means, the Beta-Binomial model is the most appropriate for this problem.
+
+b. Since this country is so polarized around politics and it is basically a predictor of many things, I suspect that pi is close to 40%, with a range of plausible values between 35 to 45.
+
+```{r}
+
+p <- .4
+n <- 190
+
+alpha <- p*n
+beta <- n*(1-p)
+quantile(rbeta(1000, alpha, beta), c(.05,.95))
+
+plot_beta(alpha,beta) ## We tune this beta distributino that alligns with our prior beliefs
+
+```
+
+
+c.  
+
+That is such a wide prior. 90% of the values are between 2 and 76%. My prior was narrower
+
+```{r}
+quantile(rbeta(1000, 1, 2), c(.05,.95))
+```
+
+
+d. The sample proportion is .15
+```{r}
+data(pulse_of_the_nation)
+
+db <- pulse_of_the_nation
+
+db |> group_by(climate_change) |> summarize(en=n()) |> ungroup() |> mutate(p=en/sum(en)) 
+```
+
+e. 
+To my surprise, only between 13 and 17% of the US population think that climate change is not real at all. Since the data source is relatively large, there is high confidence of the number and thus, a disitrbution with a small variability.
+```{r}
+quantile(rbeta(1000,1+150,2-150+1000), c(.025,.975))
+
+
+plot_beta(151,2-150+1000)
+
+```
+
+## 8.15
+
+a. We can safely say that the alternative hypothesis is in the correct threshold since the 95% confidence interval tell us that the proportion of US adults that DON'T believe in climate change is between 13 and 17. That is higher than .1 
+
+b. As expected the posterior probability of Ha is almost 1
+```{r}
+post_p <- 1-pbeta(.1,1+150,2-150+1000)
+
+post_p 
+```
+
+c. The Bayes factor indicates there is WAY more evidence in favor of the alternative hypothesis than there is for the null hypothesis
+
+```{r}
+
+post_odds <- post_p/(1-post_p)
+post_odds 
+
+prior_odds <- (1-pbeta(.1,1,2))/pbeta(.1,1,2)
+prior_odds
+
+post_odds/prior_odds
+
+```
+
+d.
+Pi is definitely higher than .1, and this values concentrate safely between 13 and 17 percent. The alternative hypothesis is super close to the posterior mode!
+
+## 8.16
+
+a. 
+
+```{r}
+
+
+# STEP 1: DEFINE the model
+bb_model <- "
+  data {
+    int<lower = 0, upper = 1000> Y;
+  }
+  parameters {
+    real<lower = 0, upper = 1> pi;
+  }
+  model {
+    Y ~ binomial(1000, pi);
+    pi ~ beta(2, 1);
+  }
+"
+# STEP 2: SIMULATE the posterior
+bb_sim <- stan(model_code = bb_model, data = list(Y = 150), 
+               chains = 4, iter = 5000*2, seed = 84735)
+
+```
+
+b. 
+
+The chains seem healthy, there is wide overlap of the density plots, low autocrrelation after the 5th iteration and a good randomization pi values in the trace formation.
+
+```{r}
+mcmc_trace(bb_sim,pars="pi")
+
+mcmc_dens_chains(bb_sim,pars="pi")
+
+mcmc_acf(bb_sim,pars="pi")
+
+```
+
+
+c. The effective sample size ratio of .36 indicates that the accuracy of our chain is as good as if had used only 36% of independent values. In this case, it is larger than 1 so that is a good signal.
+
+The value of rhat == 1 indicates that there is great overlap accross the estimated chains.
+
+
+
+```{r}
+neff_ratio(bb_sim,pars="pi")
+
+rhat(bb_sim, pars="pi")
+```
+
+## 8.17
+
+a.
+
+```{r}
+
+bb_df <- as.data.frame(bb_sim, pars = "lp__", include = FALSE)
+
+bb_df |> summarize(post_mean = mean(pi),
+                       lower_95 = quantile (pi, .025),
+                       upper_95 = quantile (pi,.975))
+tidy(bb_sim, conf.int=TRUE, conf.level = .95)
+```
+
+
+b. All the pi values in the simulation are more than 1 !
+
+
+```{r}
+
+bb_df |> mutate(exceeds= pi>.10) |> tabyl(exceeds)
+
+```
+
+
+
+c.
+They are almost identical.
+
+## 8.18
+
+a. 
+```{r}
+set.seed(4)
+bb_df |> mutate(y_predict=rbinom(length(pi),size=100,prob=pi)) |> ggplot(aes(y_predict)) + stat_count()
+
+```
+
+b.
+The predictive model reproduces the posterior distribution: the most frequent values range between 13 and 17. The rest of the values are less likely. 
+
+
+c.
+The probability is 13%. 
+
+```{r}
+bb_df |> mutate(y_predict=rbinom(length(pi),size=100,prob=pi), exceed=y_predict>=20) |> tabyl(exceed)
+```
+
+
+
+## 8.19
+
+
+a. Normal-Normal is the appropriate model because the exercise is talking about _typical_ flipper length, not exact counts or proportions.
+
+b. 
+
+This are decent numbers for the prior.
+```{r}
+
+quantile(rnorm(1000, 200, 35), c(.05,.95))
+
+```
+
+
+c.
+```{r}
+data("penguins_bayes")
+
+penguins_bayes |> filter(species=="Adelie") |> summarize(ene=n(), media=mean(flipper_length_mm, na.rm=TRUE), sd=sd(flipper_length_mm, na.rm=TRUE)) 
+
+```
+
+d.
+```{r}
+summarize_normal_normal(mean = 200,sd = 35,sigma = 6.53,y_bar = 189.95,n = 152)
+
+
+quantile(rnorm(152,189.95,.52),c(.05,.95))
+
+```
+
+
+## 8.20
+
+a.
+$Ha:\mu \in (200,220)$
+$Ho:\mu \notin (200,220)$
+
+
+b.
+Based on the interval from d. in the last exercise we can say that our alternative Hypothesis is false, and that the null hypothesis is closer to our posterior mean.
+
+
+c.
+
+```{r}
+
+1-pnorm(200, 189.95,.52)-(1-pnorm(220, 189.95,.52))
+
+```
+
+d.
+$\mu$ is definitely less than 200
+
+## 8.21
+
+ a. Gamma-Poisson is the best model since it involves counts that are not very common.
+ 
+ b. This are decent numbers to match my prior, since mean==2, and sd==1.19 
+```{r}
+
+summarize_gamma(2.8,1.4)
+
+```
+
+
+c.
+```{r}
+loons <- bayesrules::loons
+
+loons |>  summarize(en=n(), prom=mean(count_per_100), suma=sum(count_per_100))
+
+```
+
+d. According to our data it is 95% likely that lambda is between 1.03 and 2.13
+
+```{r}
+summarize_gamma_poisson(2.8,1.4,27,18)
+
+qgamma(c(.025, 0.975), 29.8,19.4)  
+
+```
+
+
+
+
+## 8.22
+
+a.
+$Ha:\lambda < 1 $
+$Ho:\lambda \ge 1$
+
+
+b.
+The alternative hypothesis has very low empirical support, because our interval is between 1.03 and 2.13.
+
+
+c. 
+```{r}
+pgamma(1,29.8,19.4)
+```
+
+ The probability is very low!
+ 
+ d.
+ Our alternative hypothesis has very low empirical support. The true values are between 1 and 2. 
+ 
+ 
+ ## 8.23 
+ 
+ a.
+ 
+```{r}
+
+
+# STEP 1: DEFINE the model
+gp_model <- "
+  data {
+    int<lower=0> Y[18];
+  }
+  parameters {
+    real<lower=0> lambda;
+  }
+  model {
+    Y ~ poisson(lambda);
+    lambda ~ gamma(2.8, 1.4);
+  }
+"
+## Step 2: Simulate the posterior
+
+gp_sim <- stan(model_code = gp_model, data = list(Y=c(loons$count_per_100)), 
+               chains = 4, iter = 5000*2, seed = 84735)
+
+
+```
+
+
+b. 
+
+All the indicators seem in the right track. The traces look like they have wandered enough to cover all the possible pi values. There is decent overlay of the density functions of each chain, and low autocorrelation in each one of them.
+
+
+```{r}
+mcmc_trace(gp_sim,pars="lambda")
+
+mcmc_dens_chains(gp_sim,pars="lambda")
+
+mcmc_acf(gp_sim,pars="lambda")
+```
+
+
+
+
+c.
+```{r}
+
+chains_df <- as.data.frame(gp_sim, pars ="lp__", include=FALSE)
+
+chains_df |> summarize(post_mean = mean(lambda),
+                       lower_95 = quantile (lambda, .025),
+                       upper_95 = quantile (lambda,.975))
+
+tidy(gp_sim, conf.int=TRUE, conf.level = .95)
+```
+
+d. The posterior probability is very close to 0
+
+```{r}
+chains_df |> mutate(exceeds= lambda<1) |> tabyl(exceeds)
+```
+
+
+e. Results are nearly identical. 
+
+
+## 8.24
+
+```{r}
+
+set.seed(4)
+chains_df |> mutate(y_predict=rpois(n = 20000,lambda = lambda)) |> ggplot(aes(y_predict)) + stat_count()
+
+
+```
+
+
+
+b.
+Our posterior model indicates that we will usually observe only one loon in the period of observation. The next options according to the degree of plausability is two birds and zero. More than 3 is hihgly unlikely 
+
+
+c.
+
+```{r}
+chains_df |> mutate(y_predict=rpois(n = 20000,lambda = lambda), exceed=y_predict==0) |> tabyl(exceed)
+
+```
