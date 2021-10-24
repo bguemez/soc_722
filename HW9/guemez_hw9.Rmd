@@ -5,7 +5,7 @@ date: "19/10/2021"
 output: html_document
 ---
 
-```{r}
+```{r, warning=FALSE}
 # Load packages
 library(bayesrules)
 library(tidyverse)
@@ -55,9 +55,15 @@ c. The Bayes Factor is the relationship between a) and b). It gives us insight a
 
 ## 8.5 
 
+a.
 Sampling variability: it models the likelihoods of each of the values of the sampling size. 
+Posterior variability: since the model plots the whole distribution we have an approximation of its variability, and not only th mean.
 
-Posterior variability: since it plots the whole distribution we have an approximation of its variability, and not only th mean.
+b.
+We may want to predict how many cars of a daily badge will have a defect in a factory.
+
+c. 
+The posterior predictive model takes both the data and the parameter into account. This is expressed in the pmf formula that uses the posterior model. 
 
 ## 8.6
 
@@ -71,6 +77,13 @@ b.
 ```{r}
 qbeta(c(0.2,.8), 4, 5)
 ```
+
+Here is a plot that illustrates it
+
+```{r}
+plot_beta_ci(4,5,ci_level=.6)
+```
+
 
 c.
 95% of the values in this Gamma distribution are between .003 and .4611
@@ -163,6 +176,9 @@ post_odds
 plot_beta(4,3)
 
 ```
+
+
+
 Given these posterior odds, we can say that pi is nearly 5 times more likely to be higher than .4 than below .4
 
 c.
