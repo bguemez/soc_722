@@ -1,0 +1,723 @@
+---
+title: "9.10 Exercises"
+author: "Braulio Güémez"
+date: "25/10/2021"
+output: html_document
+---
+
+```{r, warning=FALSE, results='hide'}
+# Load packages
+library(bayesrules)
+library(tidyverse)
+library(rstan)
+library(rstanarm)
+library(bayesplot)
+library(tidybayes)
+library(janitor)
+library(broom.mixed)
+```
+
+
+## 9.1
+
+a.
+Because those parameters have a characteristic akin to the normal distribution: they can take any value from negative infinity to positive infinity.
+
+b.
+Because sigma can only take positive values. It can't have negative ones.
+
+c.
+Weakly informative priors are more delimited than vague priors, because the first ones take values that are sensitive to the parameter. It gives a bit more light to the MCMC explorer in that the boundaries of his/her inquiry are more defined.
+
+## 9.2
+
+a.
+y=height, x=arm length 
+
+b.
+y=XO2 emissions, x=home-work distance
+
+c.
+y=child's vocabulary, x=age
+
+d.
+y=reaction time, x=person's sleep habits
+
+
+## 9.3
+
+a.
+b0 would be zero because there is no kangaroo at 0 months. B1 would be positive because age and height are correlated.
+
+b.
+b0 would be also close to zero because it is very unlikely to have followers if you don't commit to anything! B1 should be positive because more activity might give you more visibility
+
+c.
+b0 would be more than 0 because it would indicate the number of visitors when there is no rain which is usually an appropriate scenario to visit. b1 in turn might be negative because rain is a deterrent for going outdoors.
+
+d.
+b0 wouldn't make sense because nobody sleeps zero hours. B1 might be negative because the more houors someone sleep the less they would probably watch Netflix.
+
+## 9.4
+
+Sigma refers to the variability of the data around the mean. Since we want to predict the mean, a higher variability indicates a weaker relationship between x and y and viceversa. 
+
+|## 9.5
+
+a.
+y= annual orange juice consumption (in gallons)
+x=person's age (in years)
+
+b.
+Since Y is the annual orange juice consumption and expect certain degree of variability, I will assume it follows a normal distribution.
+
+In a year, the annual orange juice consumption varies normally around a typical value of juice consumption mu and SD:
+
+$Y_{i}|\mu,\sigma \sim N(\mu,\sigma^2)$
+
+c.
+$$\begin{align*}
+Y_{i}|\beta_{0},\beta_{1},\sigma \sim N(\mu,\sigma^2)&{\sf with} \mu_{1}=\beta_{0}+\beta_{1}X_{i}\\
+\beta_{0c} \sim N(m_{0},s_{0}^2) \\
+\beta_{1} \sim N(m_{1},s_{1}^2) \\
+\sigma \sim Exp(l)
+\end{align*}$$
+
+d.
+$\sigma$ can only take values higher than zero
+
+$\beta_{0}$ can technically take any value. 
+
+$\beta_{1}$ can take any real number, negative or positive. We expect a positive one in this case.
+
+e.
+I'll use the centered version of the intercept because it doesn't make much sense to assume 0 years in predicting Y
+$\beta_{0c}$ 
+
+I don't have any idea about the yearly consumption of orange juice in the US, so I'll assume a very vague prior. Assuming every single day a person consumes 200 ml of orange juice then the mean would be 200 ml * 365. Expressed in gallons = .2*365/3.78 = 19
+
+```{r}
+plot_normal(19,3)
+```
+
+For $\beta_{1}$ ,
+we can think that every increase in a person's age would increase her consumption of juice by .25 gallons but it can as low as .0 or as high as .50 
+
+```{r}
+plot_normal(.25,.1)
+```
+
+
+At any age,I think juice consumption will tend to vary with a standard deviation of 2 gallons. 
+$\sigma$ 
+
+```{r}
+plot_gamma(1,.5)
+
+summarize_gamma(1,.5)
+```
+
+
+## 9.6
+
+a. 
+x = today's high temperature
+y = tomorrow's high temperature
+
+b.
+$Y_{i}|\mu,\sigma \sim N(\mu,\sigma^2)$
+
+c.
+$$\begin{align*}
+Y_{i}|\beta_{0},\beta_{1},\sigma \sim N(\mu,\sigma^2)&{\sf with} \mu_{1}=\beta_{0}+\beta_{1}X_{i}\\
+\beta_{0c} \sim N(m_{0},s_{0}^2) \\
+\beta_{1} \sim N(m_{1},s_{1}^2) \\
+\sigma \sim Exp(l)
+\end{align*}$$
+
+d.
+$\sigma$ can only take values higher than zero
+
+$\beta_{0}$ can technically take any value. 
+
+$\beta_{1}$ can take any real number, negative or positive. We expect a positive one in this case.
+
+e.
+
+I'll use the centered version of the intercept 
+$\beta_{0c}$ 
+
+It seems that today's high temperature will be around 17° Celsius, but since Durham is super crazy with the temperatures, I will assume a vague prior. 
+
+```{r}
+plot_normal(17,4)
+```
+
+
+For $\beta_{1}$ ,
+we can think that every increase in today's high temperature corresponds to an increase of tomorrow's temperature by 1 ° Celsius, but it can be as low as 0 or as high as 2 
+
+```{r}
+plot_normal(1,.5)
+```
+
+
+At any high temperature of today ,I think tomorrow's high temperature will vary with a standard deviation of 2 degrees. 
+$\sigma$ 
+
+
+```{r}
+plot_gamma(1,.5)
+
+summarize_gamma(1,.5)
+```
+
+
+## 9.7
+
+a. 
+False. It is not the exact posterior model, but an approximation
+b. 
+True. It is a simulation with many random iterations, which mimic the behavior of an independent sample.
+
+## 9.8
+
+a.
+
+```{r, results='hide'}
+
+stan_glm(
+  height ~ age, data=bunnies, 
+  family=gaussian,
+  prior_intercept = normal(160, 2.5, autoscale =TRUE),
+  prior = normal (0,2.5,autoscale=TRUE), 
+   prior_aux = exponential(1, autoscale=TRUE),
+  chains = 4, iter = 10000, seed=65234
+)
+
+```
+
+b.
+```{r, include=FALSE}
+
+stan_glm(
+  clicks ~ snaps, data=songs, 
+  family=gaussian,
+  prior_intercept = normal(0, 2.5, autoscale =TRUE),
+  prior = normal (0,2.5,autoscale=TRUE), 
+  prior_aux = exponential(1, autoscale=TRUE),
+  chains = 4, iter = 10000, seed=65234
+)
+
+```
+
+
+c.
+```{r, include=FALSE}
+
+stan_glm(
+  happiness ~ age, data=dogs, 
+  family=gaussian,
+  prior_intercept = normal(0, 2.5, autoscale =TRUE),
+  prior = normal (0,2.5,autoscale=TRUE),
+  prior_aux = exponential(1, autoscale=TRUE),
+  chains = 4, iter = 10000, seed=65234
+)
+
+```
+
+## 9.9
+
+a.
+
+$$\begin{align*}
+Y_{i}|\beta_{0},\beta_{1},\sigma \sim N(\mu,\sigma^2)&{\sf with} \mu_{1}=\beta_{0}+\beta_{1}X_{i}\\
+\beta_{0c} \sim N(5000,2000^2) \\
+\beta_{1} \sim N(-10,5^2) \\
+\sigma \sim Exp(.0005)
+\end{align*}$$
+
+b.
+```{r}
+prior_humid <- stan_glm(
+  rides ~ humidity, data=bikes, 
+  family=gaussian,
+  prior_intercept = normal(5000, 2000),
+  prior = normal (-10,5), 
+  prior_aux = exponential(.0005),
+  chains = 5, iter = 8000, seed=65234,
+  prior_PD = TRUE
+)
+
+
+```
+
+c.
+```{r}
+bikes |> 
+  add_fitted_draws(prior_humid, n=100) |> 
+  ggplot(aes(x=humidity, y=rides)) +
+     geom_line(aes(y = .value, group = .draw), alpha = 0.15) + 
+    geom_point(data = bikes, size = 0.05)
+```
+
+
+```{r}
+# 4 prior simulated datasets
+set.seed(3)
+bikes %>%
+  add_predicted_draws(prior_humid, n = 4) %>%
+  ggplot(aes(x = humidity, y = rides)) +
+    geom_point(aes(y = .prediction, group = .draw)) + 
+    facet_wrap(~ .draw)
+```
+
+d.
+Our prior understanding reflects an inverse association between rides and humidity. However, this association, as can be seen in the plots is very weak. It is almost a flat line.
+
+## 9.10
+
+a. 
+
+```{r}
+bikes |> ggplot(aes(humidity,rides)) + geom_point() + geom_smooth(method="lm") + theme_minimal()
+```
+
+
+
+b.
+It is not an obvious linear relationship and the data points seem kind of spread, but I don't see another option apart from a Normal approach to model this relationship.
+
+## 9.11 
+
+```{r}
+post_humid <- update(prior_humid, prior_PD=FALSE)
+```
+
+
+
+```{r}
+## Effective sample size ratio and Rhat
+
+neff_ratio(post_humid)
+rhat(post_humid)
+
+# Trace plots of parallel chains
+mcmc_trace(post_humid, size = 0.1)
+
+# Density plots of parallel chains
+mcmc_dens_overlay(post_humid)
+```
+
+All the diagnostics seem to prove that our chains mixed well. Rhat is close to 1 and neff_ratio is higher than 1. The 5 chains also overlay very nicely in the density plot. 
+
+
+c.
+
+```{r}
+bikes |> 
+  add_fitted_draws(post_humid, n=100) |> 
+  ggplot(aes(x=humidity, y=rides)) +
+     geom_line(aes(y = .value, group = .draw), alpha = 0.15) + 
+    geom_point(data = bikes, size = 0.05)
+```
+
+
+The posterior model lines indicate a clearer negative relationship between humidity and rides. It actually looks very similar to the geom_smooth I plotted above, maybe because our priors were very weakly informative. 
+
+
+## 9.12
+
+a.
+
+```{r}
+tidy(post_humid, effects = c("fixed", "aux"),
+     conf.int = TRUE, conf.level = 0.95)
+```
+
+
+b.
+  The value of sigma indicates that the estimated posterior standard deviation is of 1572 rides, which is significantly lower than we expected in our prior (2000 rides)
+
+c.
+The negative coefficient of humidity indicates that a unit increase of humidity leads to a decrease of 8 rides.
+
+d.
+since 95% of the data falls into negative values, we can safely assure that the value of the coefficient is negative. However, we must also acknowledge that there is a lot of variation in our predicted posterior. Here is a plot of all the estimated values of humidty:
+
+```{r}
+as_tibble(post_humid) |> ggplot(aes(humidity)) + geom_density() + theme_minimal()
+```
+
+
+## 9.13
+
+```{r}
+df_post_humid <- as.data.frame(post_humid)
+
+set.seed(234345)
+
+predict_90 <- df_post_humid |> mutate(mu=`(Intercept)` + humidity*90,
+                          y_new = rnorm(20000,mean=mu, sd=sigma))
+```
+
+a.1 This is the posterior model for the typical number of rides on 90% humid days
+```{r}
+typical <- predict_90 |> ggplot(aes(mu)) + geom_density()
+typical
+```
+
+
+
+a.2. This is the posterior predictive model for the number of riders _tomorrow_
+```{r}
+days <- predict_90 |> ggplot(aes(y_new)) + geom_density() + scale_x_continuous(breaks = c(-3000,0,3000,6000,9000))
+days
+```
+
+
+b.
+The density plot of the predictive model for the number of riders tomorrow has way more variability than the posterior model for the typical number of rides. This makes sense, because it is more uncertain to know what is going to happen on a random day than what usually happens when humidity is 90%.
+
+```{r}
+ggpubr::ggarrange(typical, days, nrow=1)
+```
+
+
+c. There is an 80% posterior probability that given an observed 90% humidity the number of riders would be between 1222 and 5269
+
+```{r}
+predict_90 |> summarize(lower_new = quantile(y_new, .1),
+                        upper_new = quantile(y_new,.9))
+```
+d.
+
+```{r}
+# Simulate a set of predictions
+set.seed(234345)
+shortcut_prediction <- 
+  posterior_predict(post_humid, newdata = data.frame(humidity = 90))
+
+posterior_interval(shortcut_prediction, prob = 0.80)
+
+shortcut_plot <- mcmc_dens(shortcut_prediction)
+
+days
+
+ggpubr::ggarrange(shortcut_plot,days,nrow=1)
+
+```
+
+
+Yay! They look exactly the same.
+
+
+## 9.14 
+
+a. 
+On an average windspeed day, there are typically around 5000 riders, though this average could be somewhere between 3000 and 8000
+
+I estimate that for every unit increase in windspeed there would be a decrease of 20 rides, though this average decrease could be anywhere between 0 and 40 rides
+
+Since ridership is somewhat related to humidity, I estimate that at any given windspeed, ridership will vary with a standard deviation of 100 rides
+
+
+b.
+$$\begin{align*}
+Y_{i}|\beta_{0},\beta_{1},\sigma \sim N(\mu,\sigma^2)&{\sf with} \mu_{1}=\beta_{0}+\beta_{1}X_{i}\\
+\beta_{0c} \sim N(5000,1000^2) \\
+\beta_{1} \sim N(-20,10^2) \\
+\sigma \sim Exp(.01)
+\end{align*}$$
+
+
+```{r, message=FALSE, warning=FALSE}
+prior_wind <- stan_glm(
+  rides ~ windspeed, data=bikes, 
+  family=gaussian,
+  prior_intercept = normal(5000, 1000),
+  prior = normal (-20,10), 
+  prior_aux = exponential(.01),
+  chains = 5, iter = 8000, seed=65234,
+  prior_PD = TRUE
+)
+```
+
+
+
+b. 
+
+```{r}
+bikes |> 
+  add_fitted_draws(prior_wind, n=100) |> 
+  ggplot(aes(x=windspeed, y=rides)) +
+     geom_line(aes(y = .value, group = .draw), alpha = 0.15) + 
+    geom_point(data = bikes, size = 0.05)
+```
+
+
+```{r}
+# 4 prior simulated datasets
+set.seed(3)
+bikes %>%
+  add_predicted_draws(prior_wind, n = 4) %>%
+  ggplot(aes(x = windspeed, y = rides)) +
+    geom_point(aes(y = .prediction, group = .draw)) + 
+    facet_wrap(~ .draw)
+```
+
+The plots align we out prior prior conception of the negative relationship between wind speed and rides. 
+
+d. 
+The observed data is consistent with our prior understanding of the relationship between rides and windspeed. The observed data is close to the third dataset produced in the previous exercise.
+
+```{r}
+bikes |> ggplot(aes(windspeed, rides)) + geom_point() + geom_smooth(method=glm)
+```
+
+
+
+## 9.15
+
+```{r}
+post_wind <- update(prior_wind, prior_PD=FALSE)
+```
+
+```{r}
+## Effective sample size ratio and Rhat
+
+neff_ratio(post_wind)
+rhat(post_wind)
+
+# Trace plots of parallel chains
+mcmc_trace(post_wind, size = 0.1)
+
+# Density plots of parallel chains
+mcmc_dens_overlay(post_wind)
+```
+
+According to the density plots and the trace plot our chains seem to have been mixed appropriately. The Rhat and the Effective sample size ratio are close to 1 which also indicates a "healthy" chain (in that they emulate what an independent sample would look like)
+
+
+```{r}
+bikes |> 
+  add_fitted_draws(post_wind, n=100) |> 
+  ggplot(aes(x=windspeed, y=rides)) +
+     geom_line(aes(y = .value, group = .draw), alpha = 0.15) + 
+    geom_point(data = bikes, size = 0.05)
+```
+
+The simulated posterior lines further confirms the negative relationship between windspeed and rides. There is a 95% chance that a unit increase in windspeed would be associated to a decrease of 18 to 50 rides.
+
+
+```{r}
+tidy(post_wind, effects = c("fixed", "aux"),
+     conf.int = TRUE, conf.level = 0.95)
+```
+
+
+## 9.16
+
+```{r}
+library(bayesrules)
+
+
+prior_peng <- stan_glm(
+  flipper_length_mm ~ bill_length_mm, data=penguins_bayes, 
+  family=gaussian,
+  prior_intercept = normal(200, 25),
+  chains = 4, iter = 10000, seed=65234,
+  prior_PD = TRUE
+)
+```
+
+
+```{r}
+prior_summary(prior_peng)
+```
+
+$$\begin{align*}
+Y_{i}|\beta_{0},\beta_{1},\sigma \sim N(\mu,\sigma^2)&{\sf with} \mu_{1}=\beta_{0}+\beta_{1}X_{i}\\
+\beta_{0c} \sim N(200,25^2) \\
+\beta_{1} \sim N(0,6.4^2) \\
+\sigma \sim Exp(.071)
+\end{align*}$$
+
+c.
+
+
+```{r}
+penguins_bayes %>% filter(is.na(bill_length_mm)==FALSE & is.na(flipper_length_mm)==FALSE ) |> 
+  add_fitted_draws(prior_peng, n = 100) %>%
+  ggplot(aes(x = bill_length_mm, y = flipper_length_mm )) +
+    geom_line(aes(y = .value, group = .draw), alpha = 0.15)
+
+
+# 4 prior simulated datasets
+set.seed(3)
+penguins_bayes  %>% filter(is.na(bill_length_mm)==FALSE & is.na(flipper_length_mm)==FALSE ) |> 
+  add_predicted_draws(prior_peng, n = 4) %>%
+  ggplot(aes(x = bill_length_mm, y = flipper_length_mm)) +
+    geom_point(aes(y = .prediction, group = .draw)) + 
+    facet_wrap(~ .draw)
+```
+
+d.
+
+Since we don't have a lot of idea of the direction of the relationship between flipper and bill, our prior reflect both a positive and a negative one. We can see, however, the effect of assuming certain spread, since the values go from 0 to 400. 
+
+
+## 9.17 
+
+a.
+```{r}
+penguins_bayes |> ggplot(aes(bill_length_mm,flipper_length_mm)) + geom_point() + geom_smooth(method=lm)
+```
+
+b. 
+Normal regression seems to be a reasonable approach! The relation is positive, linear, and has a relatively proportional spread in every section of the distribution (Although there seems to be two bumps in the flipper distribution)
+
+## 9.18
+
+```{r}
+set.seed(123456)
+post_penguin <- update(prior_peng, prior_PD=FALSE)
+```
+
+b.
+
+```{r}
+penguins_bayes %>% filter(is.na(bill_length_mm)==FALSE & is.na(flipper_length_mm)==FALSE ) |> 
+  add_fitted_draws(post_penguin, n = 100) %>%
+  ggplot(aes(x = bill_length_mm, y = flipper_length_mm )) +
+    geom_line(aes(y = .value, group = .draw), alpha = 0.15)
+
+
+# 4 prior simulated datasets
+set.seed(3)
+penguins_bayes  %>% filter(is.na(bill_length_mm)==FALSE & is.na(flipper_length_mm)==FALSE ) |> 
+  add_predicted_draws(post_penguin, n = 4) %>%
+  ggplot(aes(x = bill_length_mm, y = flipper_length_mm)) +
+    geom_point(aes(y = .prediction, group = .draw)) + 
+    facet_wrap(~ .draw)
+```
+
+c.
+
+```{r}
+tidy(post_penguin, effects = c("fixed", "aux"),
+     conf.int = TRUE, conf.level = 0.90)
+```
+
+
+d.
+For every unit increase in the bill length (in mm) of the penguins, there is a 1.68 increase in the flipper length (in mm). This increase, however can go from 1.51 to 1.86.
+
+e. 
+Since 90% of our posterior model data is more than 1, we can safely say that penguins with longer bills tend to have longer flippers.
+
+## 9.19
+
+a.
+```{r}
+df_post_penguins <- as.data.frame(post_penguin)
+
+set.seed(234345)
+
+predict_51 <- df_post_penguins |> mutate(mu=`(Intercept)` + bill_length_mm*51,
+                          y_new = rnorm(20000,mean=mu, sd=sigma))
+```
+
+
+b.
+```{r}
+pablo <- predict_51 |> ggplot(aes(y_new)) + geom_density() + theme_minimal() + scale_x_continuous(breaks=c(209,217))  
+any51 <- predict_51 |> ggplot(aes(mu)) + geom_density() + theme_minimal()
+
+ggpubr::ggarrange(pablo,any51, ncol = 2)
+
+```
+
+
+As we can observe, in Pablo's prediction there is more variability than in the typical 51mm-bill Penguin. The total variability of mu (209-217) is only a _part_ of the total variability of Pablo's prediction 
+
+c.
+As we can see the 80% credible interval have similar values to the complete variability of the typical penguiin
+
+```{r}
+predict_51 |> summarize(lower_new = quantile(y_new, .1),
+                        upper_new = quantile(y_new,.9))
+```
+d.
+The interval for the typical flipper would be narrower because it includes all the 51-bill penguins, not only a random penguin.
+
+e. Yay they look the same!
+```{r}
+set.seed(234345)
+shortcut_prediction <- 
+  posterior_predict(post_penguin, newdata = data.frame(bill_length_mm = 51))
+
+shortcut_plot <- mcmc_dens(shortcut_prediction)
+pablo <- predict_51 |> ggplot(aes(y_new)) + geom_density() + theme_minimal() + scale_x_continuous(breaks=c(180,240))  
+ggpubr::ggarrange(pablo,shortcut_plot, ncol=2) 
+
+```
+
+
+## 9.20
+
+a.
+Their prior understanding is that for every unit increase in the body mass (in grams) of the penguins, there would be an increase of .01 of the penguins' flipper lengths. This increase can vary from .006 to .014
+
+b. There's an obvious linear relationship
+
+```{r}
+mass <- penguins_bayes |> ggplot(aes(body_mass_g,flipper_length_mm)) + geom_point() + geom_smooth(method="lm", ci=FALSE) + theme_minimal()
+
+mass
+
+```
+
+
+
+c.
+```{r}
+bill <- penguins_bayes |> ggplot(aes(bill_length_mm,flipper_length_mm)) + geom_point() + geom_smooth(method=lm)
+
+ggpubr::ggarrange(mass,bill, ncol=2) 
+```
+
+
+Just from the plots we can observe there's more variability around the mean when x = bill length. This would make me suppose that sigma would be smaller with body_mass. 
+
+d.
+
+```{r}
+mass_post <- stan_glm(
+  flipper_length_mm ~ body_mass_g, data=penguins_bayes, 
+  family=gaussian,
+  prior = normal (.01,.002), 
+  chains = 4, iter = 10000, seed=65234
+)
+```
+
+
+e.
+```{r}
+
+mass_post_df <- as_tibble(mass_post)
+
+mass_post_plot <- mass_post_df |> ggplot(aes(body_mass_g)) + geom_density() 
+
+mass_prior <- plot_normal(.01,.002) 
+
+ggpubr::ggarrange(mass_prior, mass_post_plot , nrow=2)
+
+
+```
+
+
+The prior understanding of the researchers was closer to zero than the posterior model. Apparently, the association of body mass with flipper is larger than expected. = 
+
+
+
