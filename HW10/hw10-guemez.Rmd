@@ -184,7 +184,6 @@ True. It is a simulation with many random iterations, which mimic the behavior o
 
 a.
 
-```{r, results='hide'}
 
 stan_glm(
   height ~ age, data=bunnies, 
@@ -192,13 +191,11 @@ stan_glm(
   prior_intercept = normal(160, 2.5, autoscale =TRUE),
   prior = normal (0,2.5,autoscale=TRUE), 
    prior_aux = exponential(1, autoscale=TRUE),
-  chains = 4, iter = 10000, seed=65234
-)
+  chains = 4, iter = 10000, seed=65234) 
 
-```
 
 b.
-```{r, include=FALSE}
+
 
 stan_glm(
   clicks ~ snaps, data=songs, 
@@ -209,11 +206,9 @@ stan_glm(
   chains = 4, iter = 10000, seed=65234
 )
 
-```
-
 
 c.
-```{r, include=FALSE}
+
 
 stan_glm(
   happiness ~ age, data=dogs, 
@@ -224,7 +219,7 @@ stan_glm(
   chains = 4, iter = 10000, seed=65234
 )
 
-```
+
 
 ## 9.9
 
