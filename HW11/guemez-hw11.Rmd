@@ -1,0 +1,489 @@
+---
+title: "Chapter 10 - Exercises"
+author: "Braulio Güémez"
+date: "1/11/2021"
+output: html_document
+---
+
+```{r}
+library(bayesrules)
+library(tidyverse)
+library(bayesplot)
+library(rstanarm)
+
+```
+
+
+
+
+## 10.1
+
+1. How fair is the model? 
+This question refers to the data collection processes and their possible social implications.
+
+2. How wrong is the model? 
+This is a more technical question about how the mathematical assumptions we are making fit in the data at hand.
+
+3. How accurate are the posterior predictive models?
+This question compares the prediction with the actual data.
+
+## 10.2.
+
+a.
+A model about the effectiveness of a drug using data from participants that didn't give their consent.
+
+b.
+A model that wants to take decisions about someone getting or not into prison.
+
+c.
+A model that wants to predict the most effective way to keep people engaged in an application.
+
+d.
+A model that wants to predict violence using data only from predominantly black or latino neighborhoods
+
+## 10.3
+
+a
+I'm from Mexico and a politically to the left
+
+b. 
+I might downplay evidence that doesn't show inequality.
+
+c.
+I might be intersted in collecting data or seeing things that other non-Mexicans in the US would not see, such as patterns of immigration.
+
+## 10.4
+
+a. 
+I'd have to see the actual analysis, but on this level of generality I'd say: there is some bias from the moment when you decide what to analyze. Why did you choose to see this data and not other data? Those are things related to your point of view.
+
+b.
+Your model might not be neutral if the data collection process involved systematic bias! Thus it is important to take that information into account before doing any kind of analysis.
+
+c. 
+I once recommended to include in a survey a question about indigenous surname, which I know was relevant in some parts of Mexico.
+
+## 10.5
+
+No model perfectly fits the real world data. That is impossible! we only take approximations. The point is to see how close our approximations are with reality.
+
+## 10.6
+
+1. (Independence assumption) Observations of X and Y are independent
+2. (Lineality assumption) Y is linearly dependent on X
+3. (Spread assumption) Y varies normally around mu at any X value
+
+## 10.7 
+
+a.
+I'd estimate the mu for each value of x. Then, I'd simulate values that follow a distribution with center on mu for each value of x.
+
+b.
+
+As we can see, the predicted Y's are not very separated to the actual values, so our parameters seems to have adjusted a good model.
+
+However, predicted values tend to be higher than the actual values. (An exact match is represented by the continuous line)
+
+```{r}
+toy <- tibble(x=c(12,10,4,8,6),y=c(20,17,4,11,9)) 
+
+toy <- toy |> mutate(mu=-1.8+(2.1*x), 
+                     simulated_values=rnorm(5,mean=mu,sd=.8)) 
+toy
+
+toy |> ggplot(aes(y, simulated_values)) + geom_point() +  geom_abline(slope=1) + theme_minimal()
+
+```
+
+
+
+##10.8
+
+a. 
+We just want to see to what extent our _representation_ of reality actually fits reality. 
+
+b.
+We basically estimate to what extent the results spitted out by the model fit the real data. If there is a lot of difference between those two, then our model is not very useful to model real-world data.
+
+## 10.9 
+
+a.
+It's a comparison between the predicted models and the real data.
+
+b.
+It measures how far the predicted median data is from the real data in terms of standard deviation. Better models should have less distance in terms of standard deviations because that means they are closer to the most plausible value, the median.
+
+c.
+It tells us whether an observed Y value falls into the 50% interval of our posterior predictive model. a 50% interval might be a little to narrow, so I'd encourage Shefali to check the 95% interval.
+
+
+## 10.10 
+
+a.
+Darker density: Those are the observed values of y. The real data.
+single lighter-colored density: the distribution of all the predicted y's
+
+b.
+A good model would be one where the two densities are overlaid, because that would mean the predicted values and real values have a similar shape.
+
+c.
+The fitted and the real density plots would look very different to each other.
+
+## 10.11
+
+a.
+Reem's score of the anchov-ladas
+
+b.
+Reem's recipes
+
+c.
+Collect new data. Give Anchov-ladas to other people.
+
+d.
+Precisely because what is stated in the book: the general book may not share Reem's particular tastes.
+
+## 10.12
+
+a.
+1.Randomly split the data in k subsets of equal size
+2. Build a model in the all the k-1 models and then test it the kth data fold.
+3. Repeat 2 k-1 more times
+4. Average the k measures to obtain a single cros--validation estimation of prediction quality
+
+
+
+## 10.13
+
+```{r}
+
+library(bayesrules)
+data("coffee_ratings")
+coffee_ratings <- coffee_ratings %>% 
+  select(farm_name, total_cup_points, aroma, aftertaste)
+
+```
+
+
+a.
+```{r}
+head(coffee_ratings)
+```
+
+
+Observations may not be independent because the total score might take aroma and aftertaste as inputs! 
+
+
+b.
+
+```{r}
+set.seed(84735)
+new_coffee <- coffee_ratings %>% 
+  group_by(farm_name) %>% 
+  sample_n(1) %>% 
+  ungroup()
+head(new_coffee)
+```
+
+
+## 10.14 
+
+a.
+```{r}
+new_coffee |> ggplot(aes(aroma, total_cup_points)) + geom_point() + geom_smooth(method="lm") + theme_minimal()
+```
+
+There seems to be a clear positive relation between aroma and the total cup points. Variability also seems constant, except for the lower part of the aroma distribution.
+
+b.
+```{r}
+
+set.seed(123456)
+
+post_points <- stan_glm(
+  total_cup_points ~ aroma, data=new_coffee, 
+  family=gaussian,
+  prior_intercept = normal(75, 10),
+  chains = 5, iter = 8000, seed=65234) 
+
+```
+
+c.
+```{r}
+df_post_points <- as_tibble(post_points)
+
+df_post_points |> ggplot(aes(aroma)) + geom_density()
+
+df_post_points |> summarize(low=quantile(aroma,.1),
+          up=quantile(aroma,.9),
+          median=quantile(aroma,.5))
+
+```
+
+
+It seems like 90% of the posterior probability of Beta 1 is between 5.83 and 6.5.
+
+d.
+The median of the estimated Beta is 6.16, so we can say that there is a positive relationship between aroma and total score points. Every unit increase in the aroma opints will increase total points by 6.16. 
+
+e.
+We have a pretty safe idea that the beta coefficient is positive and definitely more than 5. So yes, it seems that the better a coffe bean's aroma, the higher its rating tends to be.
+
+## 10.15 
+
+a. 
+```{r}
+one <-  df_post_points |> sample_n(1) 
+
+b0 <- one$`(Intercept)`
+b1 <- one$aroma
+s <- one$sigma 
+
+one_sim <- new_coffee |> mutate(mu=b0+b1*aroma,
+              predicted_point=rnorm(572,mean=mu, sd=s))
+
+one_sim
+
+```
+
+
+
+b.
+```{r}
+
+one_sim |> ggplot(aes(total_cup_points)) + geom_density() + geom_density(aes(predicted_point), color="tomato") + theme_minimal()
+
+```
+
+
+The model is fairly close to the actual data. There is some difference in the variability: the distribution from the real data is less steep than the modelled data. 
+
+c.
+
+```{r}
+pp_check(post_points, nreps=50)
+```
+
+
+d.
+As we saw earlier there are reasons to believe there is a linear relation between x and y so assumption 2 seems to no be violated.
+
+The variability around the mean seems to be higher in the model than in the actual data, so there might be a degree of violation of assumption 3.
+
+## 10.16 
+
+a. 
+```{r}
+set.seed(84735)
+predict_7 <- df_post_points %>% 
+  mutate(mu = `(Intercept)` + aroma*7.67,
+         y_new = rnorm(20000, mean = mu, sd = sigma))
+
+predict_7 |> ggplot(aes(y_new)) + geom_density() + geom_vline(xintercept=84, linetype=2)
+
+```
+
+
+b.
+```{r}
+predict_7 |> summarize(mean=mean(y_new), error=84-mean(y_new))
+```
+
+Our prediction is not bad using the absolute measures. We over-predicted the total score by 1.33. 
+
+
+```{r}
+predict_7 |> summarize(mean=mean(y_new), error=84-mean(y_new), error_scaled=error/sd(y_new))
+```
+
+We have similar findings with the scaling of the error. In our model we are less than 1 standard deviation from the real value. That's not too separated!
+
+
+c.
+```{r}
+predictions <- posterior_predict(post_points,newdata = new_coffee)
+
+ppc_intervals(y = new_coffee$total_cup_points, yrep=predictions, x=new_coffee$aroma, prob=.5, prob_outer=.95)
+
+```
+
+As we have been seeing in previous exercises there is an overlay between the predicted data -- in this case the posterior predictive median-- and the observed data. Apart from first scores in the lower tail of X, there seems to be consistency in every part of the y distribution.
+
+d.
+```{r}
+prediction_summary(post_points,data=new_coffee)
+```
+
+
+
+According to the summary 68% of the batches fall within 50% of the posterior prediction interval.
+
+
+## 10.17 
+
+a. 
+
+```{r}
+set.seed(213123)
+
+folds <- prediction_summary_cv(model=post_points, new_coffee,k=10)
+
+folds
+```
+
+
+b.
+
+In general, we see that the MAE tends to be close to 1, which is a good indicator of fitness because 1 point is not too much. In mae_scaled we see that in every case the value is less than 1, meaning that in the 10 fold comparisons, the deviation of the real value with the predicted one was less than 1 standard deviation. Finally, we see that in every fold, the proportion of observed values falls safely within the 95% posterior prediction.
+
+c.
+The summary confirms our previous analysis.
+```{r}
+folds$cv
+```
+
+
+## 10.18
+
+It is hard to tell because I don't know the data collection process. It wouldn't be fair if there were external economic incentives to rank a bean higher than the evaluator truly thinks.
+
+
+## 10.19
+
+```{r}
+
+post_after <- stan_glm(
+  total_cup_points ~ aftertaste, data=new_coffee, 
+  family=gaussian,
+  prior_intercept = normal(75, 10),
+  chains = 5, iter = 8000, seed=65234) 
+
+
+```
+
+
+b.
+```{r}
+pp_check(post_after,nreps=50)
+
+new_coffee |> ggplot(aes(aftertaste,total_cup_points)) + geom_point() + geom_smooth(method="lm")
+
+```
+
+It doesn't seem wrong. In fact, it looks a lot like the aroma model.
+
+c.
+
+```{r}
+folds_2 <- prediction_summary_cv(model=post_after, new_coffee,k=10)
+
+folds_2
+
+folds_2$cv
+
+```
+
+d.
+
+They are ridiculously similar in every measure. However, the MAE is closer to 0 in aftertaste (.68 vs .87 of aroma), which thus indicates a better fitness of the model to the data. So I'd choose aroma. However, both seem to be good measures.
+
+## 10.20
+
+I have no idea about the weather in Australia, so I'll use weakly informative priors:
+
+```{r}
+post_temp <- stan_glm(
+  maxtemp ~ mintemp, data=weather_perth, 
+  family=gaussian,
+  chains = 5, iter = 8000, seed=65234) 
+
+```
+
+b.
+```{r}
+df_weather <- as_tibble(post_temp)
+
+df_weather |> ggplot(aes(mintemp)) + geom_density() + theme_minimal()
+
+df_weather |> summarize(lower_95=quantile(mintemp,.025),
+                        upper_95=quantile(mintemp,.975))
+
+
+```
+
+
+
+According to our model, a unit increase in the minimum daily temperature in Perth corresponds to an increase in the maximum daily temperature that can go as high as .88 or as low as .78. 
+
+c.
+```{r}
+weather_perth |> ggplot(aes(mintemp, maxtemp)) +  geom_point() + geom_smooth(method="lm")
+
+pp_check(post_temp, nreps = 50)
+
+predictions <- posterior_predict(post_temp,newdata = weather_perth)
+
+ppc_intervals(y = weather_perth$maxtemp, yrep=predictions, x=weather_perth$mintemp, prob=.5, prob_outer=.95)
+
+folds <- prediction_summary_cv(model=post_temp, weather_perth,k=10)
+
+folds$cv
+
+```
+
+
+According to our checks, the model appears to do a decent job. First, the data seems to be adequate to be modeled linearly and the three assumptions are not obviously violated. Our model also appears to do a good job, with the little inconvenient that it doesn't fully capture the bimodal structure of our outcome distribution. The folds analysis reveal that in average, the observed y is within less than 1 standard deviation from our model, which indicates a good fit.
+
+## Exercise 10.21
+
+We  made a similar  exercise with this data on the previous chapter, so I'll replicate some of the assumptions and code from there:
+
+```{r}
+post_humid <- stan_glm(
+  rides ~ humidity, data=bikes, 
+  family=gaussian,
+  prior_intercept = normal(5000, 2000),
+  chains = 5, iter = 8000, seed=65234,
+)
+
+```
+
+
+b.
+
+```{r}
+df_bike <- as_tibble(post_humid)
+
+df_bike |> ggplot(aes(humidity)) + geom_density() + theme_minimal()
+
+df_bike |> summarize(lower_95=quantile(humidity,.025),
+                        upper_95=quantile(humidity,.975))
+```
+
+
+
+There seems to be a weakly negative relationship between humidity and bike rides. There is a 95% posterior probability that the number of bikes will either decrease -16 or increase by 1. Thus, although the most plausible scenario is one where humidity will negatively affect ridership, there is a little chance that it might be the opposite, and in a very short magnitude.
+
+c.
+
+```{r}
+bikes |> ggplot(aes(humidity, rides)) +  geom_point() + geom_smooth(method="lm") + theme_minimal()
+
+pp_check(post_humid, nreps = 50)
+
+predictions <- posterior_predict(post_humid,newdata = bikes)
+
+ppc_intervals(y = bikes$rides, yrep=predictions, x=bikes$humidity, prob=.5, prob_outer=.95)
+
+folds <- prediction_summary_cv(model=post_humid, bikes,k=10)
+
+folds$cv
+
+```
+
+Our evaluations indicate that the model is not as good as the model with the temperatures. As we can see, the data weakly follows a linear relation and the noise around the mean is relatively high. This is illustrated in the interval plots, where we see that the 95% confidence intervals are very large. These results are coherent with the posterior analysis we did before: although we are more confident that the bike rides will diminish with more humidity, the magnitude of this association is rather variable. 
+
+
+
+
+
