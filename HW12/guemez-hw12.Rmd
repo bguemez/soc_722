@@ -1,0 +1,407 @@
+---
+title: "Chapter 11 Exercises"
+author: "Braulio Güémez"
+date: "8/11/2021"
+output: html_document
+---
+
+
+## 11.1
+
+The real world is complicated and explained by a lot of variables and it would be very unusual that a truly single independent variable satisfactorily explains an outcome . More variables (but not too much!) help us  better inform our modelling of the data. 
+
+## 11.2 
+
+a. The Ford category indicator is the baseline category (Intercept), and it is _individually_ "switched on" when the rest of X's are zero. 
+
+b. Beta 2 is the typical difference in car's miles per gallon in a city between Toyota cars and Fords 
+
+c. Beta 0 is the typical car's miles per gallon in a city for a Ford
+
+## 11.3 
+
+a. 
+
+Beta 0 is the average weight of a Stripey tomato when there are 0 days that is has been growing. This doesn't make much  sense, so a centered intercept would be betteer.
+
+Beta 1 is the typical unit increase in weight by each day it has been growing, regardless of being a Roma or a Stripey tomato. 
+
+Beta 2 is the typical difference in weight between a Roma and a Stripey tomato.
+
+
+
+b. There are no differences in weight between Roma and Stripey tomato
+
+## 11.4 
+
+a. It means that the change of Y owing to X1 depends on X2
+b. This coefficient captures how the change in tomato's weight according to tomato grow time differs between type of tomato. 
+
+## 11.5
+
+a.
+The association between income and vaccine refusal might _depend_ on whether you voted for trump (positive association) or not (negative association) 
+b.
+The association between years of education and income doesn't depend on whether you prefer vanilla instead of chocolate ice cream
+
+c.
+Two ways pointed out by the book is context and hypothesis test. Context refers to a face-value evaluation of whether it makes sense to have the predictor or not.
+Hypothesis testing evaluates whether the interaction effect is confidently not zero
+
+## 11.6
+
+a. Because they may incorporate valuable information that may be worth to better predict the outcome of interest.
+
+b. Because they may be _uninformative_ to model the outcome of interest. 
+
+c. Child's age, because we know it is related to body development. 
+
+d. Swimming abilities, because we know that children from very different sizes know how to swim, so it's not very useful information.
+
+## 11.7
+
+a. It contains the necessary amount of variables that can help predict the phenomena of interest out in the real world and in the sample data. In technical terms, this is referred as having low bias and low variance (across samples.
+
+b. A model that is too close to the actual data, to the point that the model only works for your sample and not the rest of the population (over fitting). But also a model that doesn't look _at all_ to the observed outcome of interest, neither in the sample data nor in the population. This means that the models has high variance and high bias, respectively.
+
+## 11.8
+
+Visual comparison between the predicted values spitted by the model and the actual observed values is a useful technique to see if our model is the right track of predicting data. 
+
+Cross-validation follows a similar logic but the model-real data match is quantified. This is done through the partition of the sample in various sub-samples that are trained with the model and then tested with each other. 
+
+Another technique are ELPD's, which give us an evaluation of how accurate our model is. The highest the number, the better our model is fitted to the data.
+
+## 11.9 
+
+I think a good way of understanding the bias-variance trade-off is to remember that stats are useful to us because we can infer population behavior from a sample. The idea is to have models that accurately predict the data (low bias) in the sample but that are not _exactly_ like the sample (low variance). To achieve this, it is necessary to include only the most relevant variables in a model for a certain outcome.
+
+## 11.10
+
+```{r, results='hide'}
+# Load some packages
+library(bayesrules)
+library(rstanarm)
+library(bayesplot)
+library(tidyverse)
+library(broom.mixed)
+library(tidybayes)
+library(ggplot2)
+
+```
+
+
+
+a.
+```{r}
+
+penguins_bayes |> ggplot(aes(flipper_length_mm, body_mass_g, col=species)) + geom_point() + theme_minimal()
+
+
+penguins_bayes |> drop_na() |>  group_by(species) |> summarize(bmass = mean(body_mass_g), length=mean(flipper_length_mm)) 
+
+```
+
+
+
+In general, there seems to be a positive association between flipper length and body mass for every species.
+
+b.
+```{r, results='hide'}
+penguins <- stan_glm(
+  body_mass_g ~ flipper_length_mm + species, 
+  data = penguins_bayes, family = gaussian,
+  prior_intercept = normal(4000, 250),
+  chains = 4, iter = 5000*2, seed = 84735)
+```
+
+
+c.
+```{r}
+mcmc_trace(penguins, size = 0.1)
+mcmc_dens_overlay(penguins)
+mcmc_acf(penguins)
+neff_ratio(penguins)
+rhat(penguins)
+```
+
+
+It seems like our chains mixed pretty well, since all of our diagnostics are where they should be. 
+
+
+
+d.
+```{r}
+tidy(penguins)
+```
+
+Independently of the species, for every unit increase of the flipper length there's an increase of 40.7 grams of the penguin's body mass.
+
+Independently of flipper length, in average, the Chinstrap is 206 g lighter than the Adelie species.
+
+Independently of flipper length, in average, the Gentoo is 266.4 g heavier than the Adelie species.
+
+e.
+```{r}
+set.seed(84735)
+penguing_prediction <- posterior_predict(
+  penguins,
+  newdata = data.frame(flipper_length_mm=197,
+                       species=c("Adelie")))
+
+quantile(penguing_prediction, c(.1,.9))
+
+mcmc_areas(penguing_prediction) 
+```
+
+It seems like 80% of the posterior probability is that an Adelie penguin with flipper length of 197 will be between 3508 g and 4469 grams.
+
+
+
+## 11.11
+
+a.
+
+```{r, results='hide'}
+penguins <- stan_glm(
+  body_mass_g ~ flipper_length_mm + species + flipper_length_mm:species, 
+  data = penguins_bayes, family = gaussian,
+  prior_intercept = normal(4000, 250),
+  chains = 4, iter = 5000*2, seed = 84735)
+```
+
+b.
+
+```{r}
+
+penguins_bayes %>% drop_na() |> 
+  add_fitted_draws(penguins, n = 50) %>%
+  ggplot(aes(x = flipper_length_mm, y = body_mass_g, color = species)) +
+    geom_line(aes(y = .value, group = paste(species, .draw)), alpha = 0.1)
+
+```
+
+
+According to our plot it doesn't seem that there's an interaction effect between flipper length and species. In other words, the slope is the same one for each color 
+
+c.
+```{r}
+tidy(penguins)
+
+posterior_interval(penguins, prob = 0.95)
+```
+
+
+It seems like the interaction term is only statistically significative for the comparison between the Gentoo and Adelie species, something that is not obvious just by visualizing. With the confidence interval we can say that there is a 95% confidence that association between flipper length and body mass varies depending on whether the penguin is of Gentoo species (instead of Adelie). The slope is a bit more steep if the species is Adelie.
+
+
+## 11.12 
+
+
+a. 
+```{r, results='hide'}
+penguins_2 <- stan_glm(
+  body_mass_g ~ flipper_length_mm + bill_length_mm + bill_depth_mm, 
+  data = penguins_bayes, family = gaussian,
+  prior_intercept = normal(4000, 250),
+  chains = 4, iter = 5000*2, seed = 84735)
+```
+
+
+b.
+```{r}
+posterior_interval(penguins_2,  prob = .95)
+```
+c.
+
+Flipper_length has a positive association with body mass. Bill length and bill depth have _no_ association with body mass. The new predictors, thus, are basically useless.
+
+## 11.13 
+
+
+```{r, results='hide'}
+model_1 <- stan_glm(
+  body_mass_g ~ flipper_length_mm, 
+  data = penguins_bayes, family = gaussian,
+  prior_intercept = normal(4000, 250),
+  chains = 4, iter = 5000*2, seed = 84735)
+
+model_2 <- stan_glm(
+  body_mass_g ~ species, 
+  data = penguins_bayes, family = gaussian,
+  prior_intercept = normal(4000, 250),
+  chains = 4, iter = 5000*2, seed = 84735)
+
+model_3 <- stan_glm(
+  body_mass_g ~ flipper_length_mm + species, 
+  data = penguins_bayes, family = gaussian,
+  prior_intercept = normal(4000, 250),
+  chains = 4, iter = 5000*2, seed = 84735)
+
+model_4 <- stan_glm(
+  body_mass_g ~ flipper_length_mm + bill_length_mm + bill_depth_mm, 
+  data = penguins_bayes, family = gaussian,
+  prior_intercept = normal(4000, 250),
+  chains = 4, iter = 5000*2, seed = 84735)
+
+```
+
+
+
+b.
+
+```{r}
+a <- pp_check(model_1)
+b <- pp_check(model_2)
+c <- pp_check(model_3)
+d <- pp_check(model_4)
+
+
+library(ggpubr)
+
+ggarrange(a,b,c,d)
+
+```
+
+
+
+It doesn't seem obvious which of the four models is the most appropriate. More detailed measures are needed
+
+```{r}
+penguins_complete <- penguins_bayes %>% 
+  select(flipper_length_mm, body_mass_g, species, 
+         bill_length_mm, bill_depth_mm) %>% 
+  na.omit() 
+
+set.seed(84735)
+
+a <- prediction_summary_cv(model = model_1, data = penguins_complete, k = 10)
+
+b <- prediction_summary_cv(model = model_2, data = penguins_complete, k = 10)
+
+c <- prediction_summary_cv(model = model_3, data = penguins_complete, k = 10)
+
+d <- prediction_summary_cv(model = model_4, data = penguins_complete, k = 10)
+
+summary <- tibble(a$cv) |> add_row(b$cv) |> add_row(c$cv) |> add_row(d$cv) |> mutate(model=c(1:4))
+
+
+summary
+
+```
+
+
+
+Even with these more concrete measures, it is not obvious which model is the best! It seems like model 1 has the better measures: the lowest MAE and also the lowest MAE scaled. However those measures are not obviously different to the rest of the models. 
+
+
+d.
+```{r}
+set.seed(84735)
+loo_1 <- loo(model_1)
+loo_2 <- loo(model_2)
+loo_3 <- loo(model_3)
+loo_4 <- loo(model_4)
+
+loo_compare(loo_1,loo_2,loo_3,loo_4)
+
+
+```
+
+e.
+According to the ELPD model 3 is the best one, but according to the other measures the model 1 is better. The differences are not enormous so any of those are reasonable. Thus either using flipper length or species as predictors of body_mass will generate a decent model to estimate the penguins' body mass.
+
+## 11.14
+
+Let's try some combination of body mass and species to predict bill length. According to this plot, such model seems reasonable:
+
+```{r}
+penguins_bayes |> ggplot(aes(body_mass_g,bill_length_mm, col=species)) + geom_point() + theme_minimal() + geom_smooth(method="lm")
+```
+
+I won't assume any specific priors because I have no idea about previous penguin research. 
+
+```{r, results='hide'}
+
+## just species 
+bill_1 <- stan_glm(
+  bill_length_mm ~ species, 
+  data = penguins_bayes, family = gaussian,
+  chains = 4, iter = 5000*2, seed = 84735)
+
+## just body mass
+bill_2 <- stan_glm(
+  bill_length_mm ~ body_mass_g, 
+  data = penguins_bayes, family = gaussian,
+  chains = 4, iter = 5000*2, seed = 84735)
+
+## combined models 
+bill_3 <- stan_glm(
+  bill_length_mm ~ body_mass_g + species, 
+  data = penguins_bayes, family = gaussian,
+  chains = 4, iter = 5000*2, seed = 84735)
+
+```
+
+
+```{r}
+set.seed(84735)
+
+penguins_complete <- penguins_bayes %>% 
+  select( bill_length_mm, body_mass_g, species) %>% 
+  na.omit() 
+
+predictions_1 <- posterior_predict(bill_1, newdata = penguins_complete)
+predictions_2 <- posterior_predict(bill_2, newdata = penguins_complete)
+predictions_3 <- posterior_predict(bill_3, newdata = penguins_complete)
+
+
+ppc_violin_grouped(penguins_complete$bill_length_mm, yrep = predictions_1, 
+              group = penguins_complete$species, y_draw="points")
+
+ppc_intervals(penguins_complete$bill_length_mm, yrep = predictions_2, 
+              x = penguins_complete$body_mass_g, prob = 0.5, prob_outer = 0.95)
+
+ppc_intervals_grouped(penguins_complete$bill_length_mm, yrep = predictions_3, 
+                      x =penguins_complete$body_mass_g,  group = penguins_complete$species,
+                      prob = 0.5, prob_outer = 0.95,
+                      facet_args = list(scales = "fixed")) 
+
+```
+
+
+All models look decent, so I'll look at more concrete measures
+
+
+```{r}
+summ_1 <- prediction_summary_cv(model = bill_1, data = penguins_complete, k = 10)
+summ_2 <- prediction_summary_cv(model = bill_2, data = penguins_complete, k = 10)
+summ_3 <- prediction_summary_cv(model = bill_3, data = penguins_complete, k = 10)
+
+summary <- tibble(summ_1$cv) |> add_row(summ_2$cv) |> add_row(summ_3$cv)  |> mutate(model=c(1:3))
+
+summary
+
+```
+
+Seems like both model 2 (only bodymass) and model 3 (bodymass and species) do a good job. I'll do a last check of the ELPDs to be sure.
+
+
+```{r}
+set.seed(84735)
+loo_1 <- loo(bill_1)
+loo_2 <- loo(bill_2)
+loo_3 <- loo(bill_3)
+
+loo_compare(loo_1,loo_2,loo_3)
+
+
+```
+
+
+It seems like model 3 is significantly better than model 1 (-70+(2*9.7)<0). It makes sense: the prediction of penguins' bill length is both a function of what type of penguin we are observing and its body mass. Model 3 is the best one. 
+
+
+## 11.15: My project
+
+I will use the Mexican Migration Project (MMP) developed by the Office of Population Research at Princeton  for my presentation. I am interested in modeling the hourly wage of Mexican immigrants in the US by independent variables related to how their social connections aided them in getting the job. I expect that these forms of "social capital" help some migrants to get better-paid jobs than those who didn't report using them. I will transform the dependent variable in log form to have a normally distributed dependent variable. This would satisfy the assumption of the lineral regression model.      
